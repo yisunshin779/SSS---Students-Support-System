@@ -1,0 +1,12 @@
+# Phầm mềm vẽ kiến trúc
+*.bak
+*.~archimate
+
+# Java & Spring Boot
+target/
+.mvn/
+*.jar
+
+# Môi trường IDE
+.vscode/
+.idea/
