@@ -1,0 +1,8 @@
+SELECT TOP (1000) [student_id]
+      ,[full_name]
+      ,[major]
+      ,[class_name]
+      ,[department]
+      ,[cpa]
+      ,[national_id]
+  FROM [SSS_DATABASE].[dbo].[students]
