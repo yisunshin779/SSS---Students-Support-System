@@ -1,27 +1,44 @@
 package sss.com.sss_backend_core.profile.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 @Component
 public class SyncWorker {
 
-    // Đồng bộ Sinh viên Năm 1 (Chạy vào 1:00 AM)
-    @Scheduled(cron = "0 0 1 * * ?")
+    private static final Logger log = LoggerFactory.getLogger(SyncWorker.class);
+    private final StudentSyncService syncService;
+
+    public SyncWorker(StudentSyncService syncService) {
+        this.syncService = syncService;
+    }
+
+    // Sinh viên Năm 1 - 1:00 AM
+    @Scheduled(cron = "0 0 1 * * ?", zone = "Asia/Ho_Chi_Minh")
     public void syncFreshmen() {
-        // Logic gọi API lấy dữ liệu sinh viên năm 1
-        System.out.println("Đang kéo dữ liệu sinh viên Năm 1...");
+        run("Năm 1", syncService::syncFreshmen);
     }
 
-    // Đồng bộ Sinh viên Năm 2 (Chạy vào 2:00 AM)
-    @Scheduled(cron = "...")
+    // Sinh viên Năm 2 - 2:00 AM
+    @Scheduled(cron = "0 0 2 * * ?", zone = "Asia/Ho_Chi_Minh")
     public void syncSophomores() {
-        // Logic gọi API lấy dữ liệu sinh viên năm 2
+        run("Năm 2", syncService::syncSophomores);
     }
 
-    // Đồng bộ Sinh viên Năm 3+ (Chạy vào 3:00 AM)
-    @Scheduled(cron = "...")
+    // Sinh viên Năm 3+ - 3:00 AM
+    @Scheduled(cron = "0 0 3 * * ?", zone = "Asia/Ho_Chi_Minh")
     public void syncSeniors() {
-        // Logic gọi API lấy dữ liệu sinh viên năm 3 trở lên
+        run("Năm 3+", syncService::syncSeniors);
+    }
+
+    // Một nhóm lỗi không được làm hỏng các nhóm còn lại
+    private void run(String label, Runnable task) {
+        try {
+            task.run();
+        } catch (Exception e) {
+            log.error("[SYNC {}] Thất bại toàn bộ: {}", label, e.getMessage(), e);
+        }
     }
 }
