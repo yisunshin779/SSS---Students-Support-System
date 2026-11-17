@@ -1,0 +1,1848 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ArchiMate 3.x Visualizer — SSS Technology &amp; Physical Architecture</title>
+  <style>
+    :root {
+      --bg-app: #0b1120;
+      --bg-panel: #0f172a;
+      --bg-card: #1e293b;
+      --bg-hover: #283548;
+      --border: #263348;
+      --text-main: #f1f5f9;
+      --text-sub: #94a3b8;
+      --accent: #10b981;
+      --accent-soft: rgba(16, 185, 129, 0.16);
+      --canvas-bg: #080d1a;
+      --grid-dot: #1e293b;
+      --layer-fill: #0f172a;
+      --layer-stroke: #334155;
+      --layer-header: #1e293b;
+      --node-fill: #0d2a24;
+      --node-stroke: #10b981;
+      --node-title: #d1fae5;
+      --node-sub: #cbd5e1;
+      --icon-fill: #a7f3d0;
+      --icon-stroke: #064e3b;
+    }
+
+    body.light-mode {
+      --bg-app: #f1f5f9;
+      --bg-panel: #ffffff;
+      --bg-card: #f8fafc;
+      --bg-hover: #e2e8f0;
+      --border: #cbd5e1;
+      --text-main: #0f172a;
+      --text-sub: #475569;
+      --accent: #059669;
+      --accent-soft: rgba(5, 150, 105, 0.12);
+      --canvas-bg: #f8fafc;
+      --grid-dot: #cbd5e1;
+      --layer-fill: #ffffff;
+      --layer-stroke: #cbd5e1;
+      --layer-header: #d1fae5;
+      --node-fill: #dcfce7;
+      --node-stroke: #047857;
+      --node-title: #0f172a;
+      --node-sub: #334155;
+      --icon-fill: #86efac;
+      --icon-stroke: #064e3b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg-app);
+      color: var(--text-main);
+      font-size: 13px;
+    }
+
+    /* TOP TOOLBAR — Single Clean Row (54px) */
+    .topbar {
+      height: 54px;
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 14px;
+      gap: 10px;
+      z-index: 30;
+      position: relative;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .brand-logo {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: var(--accent-soft);
+      border: 1px solid rgba(16, 185, 129, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+      font-weight: 800;
+    }
+    .brand-title {
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: -0.01em;
+    }
+    .badge-pill {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      border: 1px solid rgba(16, 185, 129, 0.35);
+    }
+
+    .nav-tabs {
+      display: flex;
+      align-items: center;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 3px;
+      gap: 2px;
+      flex-shrink: 0;
+    }
+    .nav-tab {
+      border: none;
+      background: transparent;
+      color: var(--text-sub);
+      padding: 5px 11px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .nav-tab:hover { color: var(--text-main); background: var(--bg-hover); }
+    .nav-tab.active {
+      background: var(--accent);
+      color: #052e16;
+    }
+
+    .toolbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .search-box {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+    .search-box input {
+      width: 195px;
+      height: 32px;
+      padding: 0 10px 0 28px;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--text-main);
+      font-size: 12px;
+      outline: none;
+    }
+    .search-box input:focus { border-color: var(--accent); }
+    .search-box svg {
+      position: absolute;
+      left: 8px;
+      color: var(--text-sub);
+      pointer-events: none;
+    }
+
+    .btn {
+      height: 32px;
+      padding: 0 11px;
+      border-radius: 7px;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--text-main);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .btn:hover { background: var(--bg-hover); }
+    .btn.active-toggle {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #052e16;
+      border-color: var(--accent);
+    }
+    .btn-primary:hover { filter: brightness(1.06); background: var(--accent); }
+
+    /* DROPDOWN MENU */
+    .dropdown { position: relative; }
+    .dropdown-menu {
+      position: absolute;
+      right: 0;
+      top: 38px;
+      width: 245px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      box-shadow: 0 14px 32px rgba(0,0,0,0.45);
+      padding: 6px;
+      display: none;
+      z-index: 100;
+    }
+    .dropdown-menu.open { display: block; }
+    .dropdown-item {
+      width: 100%;
+      text-align: left;
+      border: none;
+      background: transparent;
+      color: var(--text-main);
+      padding: 8px 10px;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .dropdown-item:hover { background: var(--bg-hover); }
+    .dropdown-item small { color: var(--text-sub); font-size: 10.5px; }
+    .dropdown-sep { height: 1px; background: var(--border); margin: 4px 0; }
+
+    /* MAIN WORKSPACE */
+    .workspace {
+      display: flex;
+      height: calc(100vh - 54px);
+      width: 100%;
+      overflow: hidden;
+    }
+
+    /* LEFT SIDEBAR */
+    .sidebar {
+      width: 284px;
+      background: var(--bg-panel);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 12px;
+      gap: 14px;
+      flex-shrink: 0;
+    }
+    .side-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-sub);
+    }
+    .link-btn {
+      background: none;
+      border: none;
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .link-btn:hover { text-decoration: underline; }
+
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .filter-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 5px 8px;
+      border-radius: 6px;
+      background: var(--bg-card);
+      border: 1px solid transparent;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .filter-row:hover { border-color: var(--border); }
+    .filter-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .filter-left input { accent-color: var(--accent); cursor: pointer; }
+    .count-badge {
+      font-size: 10.5px;
+      color: var(--text-sub);
+      background: var(--bg-panel);
+      padding: 1px 6px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+    }
+
+    .cond-card {
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      cursor: pointer;
+    }
+    .cond-card:hover { border-color: var(--accent); }
+    .cond-title { font-weight: 700; font-size: 11.5px; margin-bottom: 2px; }
+    .cond-sub { font-size: 10.5px; color: var(--text-sub); }
+
+    /* MAIN VIEW CONTAINER */
+    .main-view {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+      background-color: var(--canvas-bg);
+      background-image: radial-gradient(var(--grid-dot) 1px, transparent 1px);
+      background-size: 18px 18px;
+    }
+
+    .hint-banner {
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      padding: 5px 14px;
+      border-radius: 999px;
+      font-size: 11.5px;
+      color: var(--text-sub);
+      z-index: 15;
+      pointer-events: none;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+      white-space: nowrap;
+    }
+
+    .canvas-stage {
+      width: 100%;
+      height: 100%;
+      cursor: grab;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .canvas-stage:active { cursor: grabbing; }
+
+    #diagram-svg {
+      transform-origin: center center;
+      transition: transform 0.06s ease-out;
+      user-select: none;
+    }
+
+    /* SVG INTERACTION STATES */
+    .archi-node { cursor: pointer; transition: opacity 0.18s ease; }
+    .archi-node:hover .node-box { stroke-width: 2.6px; filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.45)); }
+    .archi-node.selected .node-box { stroke: #38bdf8 !important; stroke-width: 3px !important; }
+    .archi-rel { cursor: pointer; transition: opacity 0.18s ease; }
+    .archi-rel:hover .rel-path { stroke-width: 3px; }
+    .dimmed { opacity: 0.15 !important; }
+    .highlighted { opacity: 1 !important; }
+    .highlighted .rel-path { stroke-width: 2.8px !important; }
+
+    /* ZOOM CONTROLS */
+    .zoom-bar {
+      position: absolute;
+      bottom: 16px;
+      left: 16px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      z-index: 15;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+    .zoom-btn {
+      width: 28px;
+      height: 28px;
+      border: none;
+      background: transparent;
+      color: var(--text-main);
+      border-radius: 6px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .zoom-btn:hover { background: var(--bg-hover); }
+    .zoom-label {
+      font-size: 11.5px;
+      font-weight: 700;
+      min-width: 44px;
+      text-align: center;
+      color: var(--text-sub);
+    }
+
+    /* RIGHT INSPECTOR DRAWER */
+    .inspector {
+      width: 325px;
+      background: var(--bg-panel);
+      border-left: 1px solid var(--border);
+      padding: 14px;
+      overflow-y: auto;
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+      z-index: 20;
+    }
+    .inspector.open { display: flex; }
+    .insp-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+    }
+    .insp-rel-item {
+      padding: 7px 9px;
+      border-radius: 6px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      margin-top: 6px;
+      cursor: pointer;
+      font-size: 11.5px;
+    }
+    .insp-rel-item:hover { border-color: var(--accent); }
+
+    /* SUB-VIEWS (MATRIX & DICTIONARY) */
+    .tab-panel {
+      display: none;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      padding: 24px;
+    }
+    .tab-panel.active { display: block; }
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      font-size: 12px;
+    }
+    table.data-table th, table.data-table td {
+      padding: 9px 12px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+    }
+    table.data-table th {
+      background: var(--bg-card);
+      font-weight: 700;
+      color: var(--accent);
+    }
+    table.data-table tr:hover td { background: var(--bg-hover); }
+
+    /* TOAST NOTIFICATION */
+    .toast {
+      position: fixed;
+      bottom: 18px;
+      right: 18px;
+      background: var(--bg-panel);
+      border: 1px solid var(--accent);
+      color: var(--text-main);
+      padding: 10px 15px;
+      border-radius: 9px;
+      font-size: 12px;
+      font-weight: 600;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.45);
+      z-index: 200;
+      display: none;
+      align-items: center;
+      gap: 8px;
+    }
+    .toast.show { display: flex; }
+
+    /* PNG EXPORT PREVIEW MODAL */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(2, 6, 23, 0.78);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 150;
+      padding: 20px;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal-box {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      width: 92vw;
+      max-width: 1060px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.65);
+    }
+    .modal-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .modal-body {
+      flex: 1;
+      overflow: auto;
+      padding: 16px;
+      background: #1e293b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-body img {
+      max-width: 100%;
+      max-height: 68vh;
+      border-radius: 6px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+      background: #ffffff;
+    }
+    .modal-footer {
+      padding: 10px 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11.5px;
+      color: var(--text-sub);
+    }
+
+    @media print {
+      .topbar, .sidebar, .zoom-bar, .hint-banner, .inspector { display: none !important; }
+      .workspace, .main-view, .canvas-stage { height: auto !important; overflow: visible !important; }
+      #diagram-svg { transform: none !important; width: 100% !important; height: auto !important; }
+    }
+  </style>
+</head>
+<body>
+  <!-- TOP NAVIGATION BAR -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-logo">A3</div>
+      <span class="brand-title">SSS Technology Architecture</span>
+      <span class="badge-pill">ArchiMate 3.x • Technology &amp; Physical</span>
+    </div>
+
+    <nav class="nav-tabs">
+      <button class="nav-tab active" data-tab="diagram" onclick="switchTab('diagram')">Sơ đồ kiến trúc</button>
+      <button class="nav-tab" data-tab="matrix" onclick="switchTab('matrix')">Ma trận truy vết</button>
+      <button class="nav-tab" data-tab="dictionary" onclick="switchTab('dictionary')">Danh mục (34 / 64)</button>
+    </nav>
+
+    <div class="toolbar-actions">
+      <div class="search-box">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input id="search-input" type="text" placeholder="Tìm phần tử, ID, nhãn..." oninput="handleSearch(this.value)" />
+      </div>
+
+      <button id="btn-color-mode" class="btn" onclick="toggleColorMode()" title="Đổi giữa màu chuẩn ArchiMate Technology và màu phân loại theo vùng kiến trúc">Màu phân loại</button>
+      <button id="btn-rel-labels" class="btn active-toggle" onclick="toggleRelLabels()" title="Hiện/Ẩn nhãn flows, assigned to, serves, synchronize">Nhãn quan hệ</button>
+
+      <div class="dropdown">
+        <button class="btn btn-primary" onclick="toggleExportMenu(event)">
+          <span>Xuất file</span>
+          <span>▾</span>
+        </button>
+        <div id="export-menu" class="dropdown-menu">
+          <button class="dropdown-item" onclick="exportPNG('light')">
+            <span>Xuất ảnh PNG (Nền trắng)</span>
+            <small>2x HD</small>
+          </button>
+          <button class="dropdown-item" onclick="exportPNG('dark')">
+            <span>Xuất ảnh PNG (Nền tối)</span>
+            <small>2x HD</small>
+          </button>
+          <div class="dropdown-sep"></div>
+          <button class="dropdown-item" onclick="exportSVG()">
+            <span>Xuất vector SVG chuẩn</span>
+            <small>.svg</small>
+          </button>
+          <button class="dropdown-item" onclick="window.print()">
+            <span>In ấn / Lưu PDF</span>
+            <small>Ctrl+P</small>
+          </button>
+        </div>
+      </div>
+
+      <button id="btn-theme" class="btn" onclick="toggleTheme()" title="Chuyển Sáng / Tối">☀ / ☾</button>
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE -->
+  <div class="workspace">
+    <!-- LEFT FILTER & LEGEND SIDEBAR -->
+    <aside class="sidebar">
+      <div>
+        <div class="side-header" style="margin-bottom:8px;">
+          <span>Phân vùng Hạ tầng (Zones)</span>
+          <button class="link-btn" onclick="resetAllFilters()">Khôi phục</button>
+        </div>
+        <div class="filter-group">
+          <label class="filter-row">
+            <span class="filter-left"><input type="checkbox" checked onchange="toggleZoneFilter('client_wan', this.checked)" /> 1. Đầu cuối &amp; Mạng WAN</span>
+            <span class="count-badge">6</span>
+          </label>
+          <label class="filter-row">
+            <span class="filter-left"><input type="checkbox" checked onchange="toggleZoneFilter('edge', this.checked)" /> 2. Cân bằng tải &amp; Cổng Web</span>
+            <span class="count-badge">3</span>
+          </label>
+          <label class="filter-row">
+            <span class="filter-left"><input type="checkbox" checked onchange="toggleZoneFilter('external', this.checked)" /> 3. Hệ thống ngoài SSS</span>
+            <span class="count-badge">8</span>
+          </label>
+          <label class="filter-row">
+            <span class="filter-left"><input type="checkbox" checked onchange="toggleZoneFilter('sss_core', this.checked)" /> 4. Hạ tầng Lõi SSS</span>
+            <span class="count-badge">17</span>
+          </label>
+        </div>
+      </div>
+
+      <div>
+        <div class="side-header" style="margin-bottom:8px;">
+          <span>Loại quan hệ (64 kết nối)</span>
+        </div>
+        <div class="filter-group">
+          <label class="filter-row">
+            <span class="filter-left"><input type="checkbox" checked onchange="toggleRelFilter('Flow', this.checked)" /> <span style="color:#ef4444;font-weight:700;">┄▶</span> Flow</span>
+            <span class="count-badge">16</span>
+          </label>
+          <label class="filter-row">
+            <span class="filter-left"><input type="checkbox" checked onchange="toggleRelFilter('Association', this.checked)" /> <span style="color:#94a3b8;font-weight:700;">───</span> Association</span>
+            <span class="count-badge">14</span>
+          </label>
+          <label class="filter-row">
+            <span class="filter-left"><input type="checkbox" checked onchange="toggleRelFilter('Aggregation', this.checked)" /> <span style="color:#06b6d4;font-weight:700;">◇─</span> Aggregation</span>
+            <span class="count-badge">18</span>
+          </label>
+          <label class="filter-row">
+            <span class="filter-left"><input type="checkbox" checked onchange="toggleRelFilter('Assignment', this.checked)" /> <span style="color:#a855f7;font-weight:700;">●─▶</span> Assignment</span>
+            <span class="count-badge">6</span>
+          </label>
+          <label class="filter-row">
+            <span class="filter-left"><input type="checkbox" checked onchange="toggleRelFilter('Composition', this.checked)" /> <span style="color:#eab308;font-weight:700;">◆─</span> Composition</span>
+            <span class="count-badge">5</span>
+          </label>
+          <label class="filter-row">
+            <span class="filter-left"><input type="checkbox" checked onchange="toggleRelFilter('Serving', this.checked)" /> <span style="color:#10b981;font-weight:700;">─&gt;</span> Serving</span>
+            <span class="count-badge">4</span>
+          </label>
+          <label class="filter-row">
+            <span class="filter-left"><input type="checkbox" checked onchange="toggleRelFilter('Realization', this.checked)" /> <span style="color:#3b82f6;font-weight:700;">┄▷</span> Realization</span>
+            <span class="count-badge">1</span>
+          </label>
+          <label class="filter-row" style="margin-top:3px; border-style:dashed; border-color:var(--border);">
+            <span class="filter-left"><input id="chk-nested" type="checkbox" onchange="toggleNestedRels(this.checked)" /> Hiện nét lồng ghép (Nested)</span>
+            <span class="count-badge">25</span>
+          </label>
+        </div>
+      </div>
+
+      <div>
+        <div class="side-header" style="margin-bottom:8px;">
+          <span>Luồng dữ liệu &amp; Đồng bộ chính</span>
+        </div>
+        <div class="filter-group">
+          <div class="cond-card" onclick="focusRelation('id-1f8b0421a98b4d6eb7d40a2f7b562ef1')">
+            <div class="cond-title" style="color:#10b981;">Web Traffic Flow (flows)</div>
+            <div class="cond-sub">Cụm Cân bằng tải → SSS server node</div>
+          </div>
+          <div class="cond-card" onclick="focusRelation('id-1c4a3eff61f64cb7b206959e06b3eb12')">
+            <div class="cond-title" style="color:#38bdf8;">DB Replication (synchronize)</div>
+            <div class="cond-sub">Primary DB Node → Replica DB Node</div>
+          </div>
+          <div class="cond-card" onclick="focusRelation('id-6f5de46f2d484aac811437a8ecf6577f')">
+            <div class="cond-title" style="color:#f59e0b;">ETL Data Pipeline</div>
+            <div class="cond-sub">Message Queue → ETL/ Batch Scheduler</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="side-header" style="margin-bottom:8px;">
+          <span>Ký hiệu ArchiMate 3.x (Technology)</span>
+        </div>
+        <div class="filter-group" style="font-size:11.5px; color:var(--text-sub);">
+          <div class="filter-row" style="cursor:default;">
+            <span>Node (Nút hạ tầng)</span>
+            <svg width="22" height="20" viewBox="0 0 22 20">
+              <polygon points="3,6 7,2 19,2 19,14 15,18 3,18" fill="#86efac" stroke="#064e3b" stroke-width="1.3"/>
+              <polyline points="3,6 15,6 19,2" fill="none" stroke="#064e3b" stroke-width="1.3"/>
+              <line x1="15" y1="6" x2="15" y2="18" stroke="#064e3b" stroke-width="1.3"/>
+            </svg>
+          </div>
+          <div class="filter-row" style="cursor:default;">
+            <span>Device (Thiết bị vật lý)</span>
+            <svg width="22" height="20" viewBox="0 0 22 20">
+              <rect x="3" y="2" width="16" height="11" rx="1.5" fill="#86efac" stroke="#064e3b" stroke-width="1.3"/>
+              <polygon points="2,14 20,14 21,18 1,18" fill="#86efac" stroke="#064e3b" stroke-width="1.3"/>
+            </svg>
+          </div>
+          <div class="filter-row" style="cursor:default;">
+            <span>System Software (Phần mềm HT)</span>
+            <svg width="22" height="20" viewBox="0 0 22 20">
+              <circle cx="12.5" cy="8.5" r="5.5" fill="#86efac" stroke="#064e3b" stroke-width="1.3"/>
+              <circle cx="9.5" cy="11.5" r="5.5" fill="#86efac" stroke="#064e3b" stroke-width="1.3"/>
+            </svg>
+          </div>
+          <div class="filter-row" style="cursor:default;">
+            <span>Technology Collaboration</span>
+            <svg width="24" height="18" viewBox="0 0 24 18">
+              <circle cx="9" cy="9" r="5.5" fill="#86efac" stroke="#064e3b" stroke-width="1.3"/>
+              <circle cx="15" cy="9" r="5.5" fill="#86efac" fill-opacity="0.85" stroke="#064e3b" stroke-width="1.3"/>
+            </svg>
+          </div>
+          <div class="filter-row" style="cursor:default;">
+            <span>Technology Interface</span>
+            <svg width="24" height="18" viewBox="0 0 24 18">
+              <line x1="2" y1="9" x2="10" y2="9" stroke="#064e3b" stroke-width="1.5"/>
+              <circle cx="15" cy="9" r="5" fill="#86efac" stroke="#064e3b" stroke-width="1.4"/>
+            </svg>
+          </div>
+          <div class="filter-row" style="cursor:default;">
+            <span>Communication Network / Path</span>
+            <svg width="24" height="18" viewBox="0 0 24 18">
+              <line x1="4" y1="9" x2="20" y2="9" stroke="#064e3b" stroke-width="1.6"/>
+              <circle cx="4" cy="9" r="2.5" fill="#064e3b"/>
+              <circle cx="20" cy="9" r="2.5" fill="#064e3b"/>
+            </svg>
+          </div>
+          <div class="filter-row" style="cursor:default;">
+            <span>Artifact / Grouping</span>
+            <svg width="22" height="18" viewBox="0 0 22 18">
+              <polygon points="3,2 14,2 19,7 19,16 3,16" fill="#86efac" stroke="#064e3b" stroke-width="1.3"/>
+              <polyline points="14,2 14,7 19,7" fill="none" stroke="#064e3b" stroke-width="1.3"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="main-view">
+      <!-- TAB 1: INTERACTIVE DIAGRAM -->
+      <div id="tab-diagram" style="width:100%; height:100%; position:relative;">
+        <div class="hint-banner">Kéo chuột để di chuyển (Pan), cuộn bánh xe để Zoom. Nhấp vào phần tử hoặc đường quan hệ để xem chi tiết.</div>
+
+        <div id="canvas-stage" class="canvas-stage">
+          <svg id="diagram-svg" xmlns="http://www.w3.org/2000/svg" width="1760" height="1270" viewBox="0 0 1760 1270">
+            <defs>
+              <!-- Official ArchiMate 3.x Technology & Physical Layer Glyphs -->
+              <symbol id="archi-icon-node" viewBox="0 0 22 20">
+                <polygon points="3,6 7,2 19,2 19,14 15,18 3,18" fill="#86efac" stroke="#064e3b" stroke-width="1.3" stroke-linejoin="round"/>
+                <polyline points="3,6 15,6 19,2" fill="none" stroke="#064e3b" stroke-width="1.3" stroke-linejoin="round"/>
+                <line x1="15" y1="6" x2="15" y2="18" stroke="#064e3b" stroke-width="1.3"/>
+              </symbol>
+
+              <symbol id="archi-icon-device" viewBox="0 0 22 20">
+                <rect x="3" y="2" width="16" height="11" rx="1.5" fill="#86efac" stroke="#064e3b" stroke-width="1.3"/>
+                <polygon points="2,14 20,14 21,18 1,18" fill="#86efac" stroke="#064e3b" stroke-width="1.3" stroke-linejoin="round"/>
+              </symbol>
+
+              <symbol id="archi-icon-software" viewBox="0 0 22 20">
+                <circle cx="12.5" cy="8.5" r="5.5" fill="#86efac" stroke="#064e3b" stroke-width="1.3"/>
+                <circle cx="9.5" cy="11.5" r="5.5" fill="#86efac" stroke="#064e3b" stroke-width="1.3"/>
+              </symbol>
+
+              <symbol id="archi-icon-collab" viewBox="0 0 24 18">
+                <circle cx="9" cy="9" r="5.5" fill="#86efac" stroke="#064e3b" stroke-width="1.3"/>
+                <circle cx="15" cy="9" r="5.5" fill="#86efac" fill-opacity="0.88" stroke="#064e3b" stroke-width="1.3"/>
+              </symbol>
+
+              <symbol id="archi-icon-interface" viewBox="0 0 24 18">
+                <line x1="2" y1="9" x2="10" y2="9" stroke="#064e3b" stroke-width="1.5"/>
+                <circle cx="15" cy="9" r="5" fill="#86efac" stroke="#064e3b" stroke-width="1.4"/>
+              </symbol>
+
+              <symbol id="archi-icon-network" viewBox="0 0 24 18">
+                <line x1="4" y1="9" x2="20" y2="9" stroke="#064e3b" stroke-width="1.6"/>
+                <circle cx="4" cy="9" r="2.6" fill="#064e3b"/>
+                <circle cx="20" cy="9" r="2.6" fill="#064e3b"/>
+              </symbol>
+
+              <symbol id="archi-icon-path" viewBox="0 0 24 18">
+                <line x1="5" y1="9" x2="19" y2="9" stroke="#064e3b" stroke-width="1.5" stroke-dasharray="2.5,2"/>
+                <polyline points="7,5.5 3,9 7,12.5" fill="none" stroke="#064e3b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <polyline points="17,5.5 21,9 17,12.5" fill="none" stroke="#064e3b" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </symbol>
+
+              <symbol id="archi-icon-artifact" viewBox="0 0 22 18">
+                <polygon points="3,2 14,2 19,7 19,16 3,16" fill="#86efac" stroke="#064e3b" stroke-width="1.3" stroke-linejoin="round"/>
+                <polyline points="14,2 14,7 19,7" fill="none" stroke="#064e3b" stroke-width="1.3" stroke-linejoin="round"/>
+              </symbol>
+
+              <symbol id="archi-icon-grouping" viewBox="0 0 22 18">
+                <path d="M2,5.5 L2,3 L9.5,3 L11.5,5.5 L20,5.5 L20,15.5 L2,15.5 Z" fill="#86efac" stroke="#064e3b" stroke-width="1.3" stroke-linejoin="round"/>
+              </symbol>
+
+              <!-- ArchiMate Relationship Markers -->
+              <marker id="mk-realization" viewBox="0 0 12 12" refX="10.5" refY="6" markerWidth="9" markerHeight="9" orient="auto">
+                <polygon points="1,1.5 11,6 1,10.5" fill="#ffffff" stroke="#3b82f6" stroke-width="1.6"/>
+              </marker>
+              <marker id="mk-serving" viewBox="0 0 12 12" refX="10.5" refY="6" markerWidth="9" markerHeight="9" orient="auto">
+                <polyline points="2,2 10.5,6 2,10" fill="none" stroke="#10b981" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              </marker>
+              <marker id="mk-flow" viewBox="0 0 12 12" refX="10.5" refY="6" markerWidth="9" markerHeight="9" orient="auto">
+                <polygon points="1,1.8 11,6 1,10.2" fill="#ef4444"/>
+              </marker>
+              <marker id="mk-assignment-start" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+                <circle cx="5" cy="5" r="3.4" fill="#a855f7"/>
+              </marker>
+              <marker id="mk-assignment-end" viewBox="0 0 12 12" refX="10.5" refY="6" markerWidth="8.5" markerHeight="8.5" orient="auto">
+                <polygon points="1.5,2 10.5,6 1.5,10" fill="#a855f7"/>
+              </marker>
+              <marker id="mk-aggregation-start" viewBox="0 0 16 12" refX="1.5" refY="6" markerWidth="12" markerHeight="9" orient="auto">
+                <polygon points="1.5,6 8,2 14.5,6 8,10" fill="#ffffff" stroke="#06b6d4" stroke-width="1.6"/>
+              </marker>
+              <marker id="mk-composition-start" viewBox="0 0 16 12" refX="1.5" refY="6" markerWidth="12" markerHeight="9" orient="auto">
+                <polygon points="1.5,6 8,2 14.5,6 8,10" fill="#eab308" stroke="#eab308" stroke-width="1.4"/>
+              </marker>
+            </defs>
+
+            <!-- ZONE BACKDROPS -->
+            <g id="layer-groups"></g>
+
+            <!-- CONTAINER NODES (Groupings & Enclosing Nodes/Collaborations) -->
+            <g id="containers-layer"></g>
+
+            <!-- ALL RELATIONSHIPS -->
+            <g id="relations-layer"></g>
+
+            <!-- LEAF NODES -->
+            <g id="nodes-layer"></g>
+          </svg>
+        </div>
+
+        <!-- ZOOM TOOLBAR -->
+        <div class="zoom-bar">
+          <button class="zoom-btn" onclick="changeZoom(-0.1)" title="Thu nhỏ">−</button>
+          <span id="zoom-label" class="zoom-label">100%</span>
+          <button class="zoom-btn" onclick="changeZoom(0.1)" title="Phóng to">+</button>
+          <button class="zoom-btn" onclick="resetView()" title="Khôi phục khung nhìn">⌂</button>
+        </div>
+      </div>
+
+      <!-- TAB 2: TRACEABILITY MATRIX -->
+      <div id="tab-matrix" class="tab-panel">
+        <h2 style="font-size:16px; margin-bottom:6px;">Ma trận Truy vết Hạ tầng &amp; Luồng Dữ liệu (End-to-End Infrastructure Traceability)</h2>
+        <p style="color:var(--text-sub); margin-bottom:14px;">Ánh xạ luồng kết nối từ Thiết bị đầu cuối &amp; Hệ thống ngoài → Cân bằng tải &amp; Message Queue → Máy chủ Ứng dụng, CSDL &amp; Data Hub theo tệp XML.</p>
+        <div id="matrix-container"></div>
+      </div>
+
+      <!-- TAB 3: DICTIONARY -->
+      <div id="tab-dictionary" class="tab-panel">
+        <h2 style="font-size:16px; margin-bottom:6px;">Danh mục Phần tử (34) &amp; Mối quan hệ (64)</h2>
+        <p style="color:var(--text-sub); margin-bottom:14px;">Kiểm tra toàn bộ mã định danh XML, kiểu phần tử ArchiMate 3.x Technology &amp; Physical và luồng kết nối trong sơ đồ.</p>
+        <div id="dictionary-container"></div>
+      </div>
+    </main>
+
+    <!-- RIGHT INSPECTOR PANEL -->
+    <aside id="inspector" class="inspector">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--accent);">Chi tiết phần tử / quan hệ</span>
+        <button class="zoom-btn" onclick="closeInspector()">✕</button>
+      </div>
+      <div id="inspector-body"></div>
+    </aside>
+  </div>
+
+  <!-- TOAST -->
+  <div id="toast" class="toast"></div>
+
+  <!-- PNG EXPORT PREVIEW MODAL -->
+  <div id="png-modal" class="modal-backdrop" onclick="if(event.target===this) closePngModal()">
+    <div class="modal-box">
+      <div class="modal-header">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <strong style="font-size:14px;">Xem trước &amp; Tải ảnh PNG (3520 × 2540 px • 2x HD)</strong>
+          <span id="png-mode-badge" class="badge-pill">Nền trắng chuẩn báo cáo</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <button class="btn" onclick="exportPNG('light')">Nền trắng</button>
+          <button class="btn" onclick="exportPNG('dark')">Nền tối</button>
+          <button class="btn" onclick="copyPngToClipboard()">Sao chép ảnh</button>
+          <a id="png-download-link" class="btn btn-primary" download="SSS-Technology-Architecture.png" href="#">Tải xuống PNG</a>
+          <button class="zoom-btn" onclick="closePngModal()">✕</button>
+        </div>
+      </div>
+      <div class="modal-body">
+        <img id="png-preview-img" alt="ArchiMate PNG Preview" />
+      </div>
+      <div class="modal-footer">
+        <span>Mẹo: Nếu trình duyệt chặn tải tự động, hãy nhấn nút <strong>Tải xuống PNG</strong> phía trên hoặc nhấp chuột phải vào ảnh chọn <em>Lưu hình ảnh thành...</em></span>
+        <span id="png-size-info">Sẵn sàng</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // 1. ARCHITECTURAL ZONES (VISUAL BACKDROPS)
+    // =========================================================================
+    const ZONES = [
+      { id: 'zone-client', name: '1. CLIENT DEVICES & WAN PERIMETER', zone: 'client_wan', x: 28, y: 20, w: 560, h: 375 },
+      { id: 'zone-edge', name: '2. APPLICATION LOAD BALANCING & WEB INTERFACE', zone: 'edge', x: 612, y: 20, w: 1120, h: 215 },
+      { id: 'zone-external', name: '3. EXTERNAL SYSTEMS & HUST DATA CENTER LAN', zone: 'external', x: 28, y: 418, w: 560, h: 830 },
+      { id: 'zone-core', name: '4. STUDENTS SUPPORT SYSTEM (SSS) CORE INFRASTRUCTURE', zone: 'sss_core', x: 612, y: 258, w: 1120, h: 990 }
+    ];
+
+    // =========================================================================
+    // 2. ALL 34 DIAGRAM ELEMENTS FROM 'SSS - technology architecture.archimate'
+    // =========================================================================
+    const ELEMENTS = [
+      // Zone 1: Client Devices & WAN Perimeter (6)
+      { id: 'id-e64a8d036a2c454f90a181c571b3e8f8', name: 'Smartphone (Sinh viên)', sub: 'Thiết bị di động đầu cuối', type: 'Device', zone: 'client_wan', x: 52, y: 74, w: 205, h: 76, desc: 'Thiết bị di động của sinh viên truy cập cổng thông tin SSS qua Internet.' },
+      { id: 'id-bbebe881fe5942e7966503fb02416030', name: 'PC', sub: 'Máy tính cá nhân / Trạm làm việc', type: 'Device', zone: 'client_wan', x: 52, y: 174, w: 205, h: 76, desc: 'Máy tính cá nhân của sinh viên, cố vấn học tập và quản trị viên truy cập hệ thống.' },
+      { id: 'id-ea62e42fec4a44babab4b37839528080', name: 'Mạng WAN (Internet)', sub: 'Hạ tầng mạng diện rộng', type: 'CommunicationNetwork', zone: 'client_wan', x: 325, y: 135, w: 235, h: 84, desc: 'Mạng Internet công cộng kết nối thiết bị người dùng tới hạ tầng biên của trường.' },
+      { id: 'id-c372f31b45bd4e00b309ba46e58d7a6a', name: 'HTTPS', sub: 'Kênh truyền tải mã hóa TLS', type: 'Path', zone: 'client_wan', x: 350, y: 38, w: 185, h: 66, desc: 'Đường truyền logic bảo mật HTTPS được hiện thực hóa trên hạ tầng mạng WAN.' },
+      { id: 'id-3fc822f856b74ec9ae2fcd457fed49b6', name: 'Router/ Switch', sub: 'Thiết bị định tuyến & chuyển mạch', type: 'Device', zone: 'client_wan', x: 64, y: 292, w: 215, h: 78, desc: 'Thiết bị định tuyến biên tiếp nhận lưu lượng từ mạng WAN vào vùng DMZ.' },
+      { id: 'id-bff0bb641d094b81aebb2f9738c73c85', name: 'Hardware Firewall', sub: 'Tường lửa phần cứng bảo vệ biên', type: 'Device', zone: 'client_wan', x: 340, y: 292, w: 225, h: 78, desc: 'Tường lửa phần cứng kiểm soát gói tin, lọc truy cập trước khi chuyển tới cụm cân bằng tải.' },
+
+      // Zone 2: Edge & Load Balancing (3)
+      { id: 'id-f2789096e2d6445c9e4883eb88d8327c', name: 'Cụm Cân bằng tải Ứng dụng', sub: 'Technology Collaboration', type: 'TechnologyCollaboration', zone: 'edge', x: 650, y: 66, w: 330, h: 146, isContainer: true, desc: 'Cụm cân bằng tải phân phối lưu lượng truy cập đồng thời tới các máy chủ ứng dụng SSS.' },
+      { id: 'id-699d840e6834490a9ee14bcc627c76fb', name: 'Load Balancer', sub: 'Nút điều phối tải (Active/Standby)', type: 'Node', zone: 'edge', parentId: 'id-f2789096e2d6445c9e4883eb88d8327c', x: 682, y: 126, w: 266, h: 68, desc: 'Nút cân bằng tải trực thuộc Cụm Cân bằng tải Ứng dụng.' },
+      { id: 'id-671f08ce08a34308b65c6f9d5758c850', name: 'SSS.hust.edu.vn', sub: 'Giao diện cổng truy cập Web', type: 'TechnologyInterface', zone: 'edge', x: 1110, y: 95, w: 270, h: 84, desc: 'Điểm truy cập giao diện công nghệ chính thức của hệ thống SSS tại tên miền SSS.hust.edu.vn.' },
+
+      // Zone 3: External Systems Grouping & Members (8)
+      { id: 'id-ae89329e1c4e4c66ab89985266412c5d', name: 'Hệ thống ngoài SSS', sub: 'Hệ thống & hạ tầng liên kết HUST', type: 'Grouping', zone: 'external', x: 48, y: 465, w: 520, h: 760, isContainer: true, desc: 'Tập hợp các hệ thống nguồn dữ liệu, xác thực tập trung, cổng thông báo và mạng LAN nội bộ HUST.' },
+      { id: 'id-4b70ae37571548a782d8aab93e40833b', name: 'Mạng LAN (Data Center HUST)', sub: 'Mạng nội bộ Trung tâm Dữ liệu', type: 'CommunicationNetwork', zone: 'external', parentId: 'id-ae89329e1c4e4c66ab89985266412c5d', x: 68, y: 530, w: 228, h: 98, desc: 'Hạ tầng mạng LAN tốc độ cao trong Data Center HUST kết nối các máy chủ nội bộ và hệ thống lõi.' },
+      { id: 'id-1229997191874889bfa395ca18bc9fa2', name: 'SSO Authentication (HUST)', sub: 'Dịch vụ xác thực đăng nhập một lần', type: 'TechnologyCollaboration', zone: 'external', parentId: 'id-ae89329e1c4e4c66ab89985266412c5d', x: 68, y: 700, w: 228, h: 98, desc: 'Cụm xác thực tập trung SSO của Đại học Bách khoa Hà Nội phục vụ đăng nhập SSS.' },
+      { id: 'id-1f07cc053e9c47adb832df2e80203b38', name: 'Cổng thông báo (Email/ SMS/...)', sub: 'Hạ tầng gửi thông báo đa kênh', type: 'Node', zone: 'external', parentId: 'id-ae89329e1c4e4c66ab89985266412c5d', x: 68, y: 870, w: 228, h: 98, desc: 'Hệ thống gửi thông báo tự động qua Email, SMS tới sinh viên và giảng viên.' },
+      { id: 'id-7509d4fc056b4adca9e5e25b9ccc5bfa', name: 'Hệ thống tuyển sinh', sub: 'Nguồn dữ liệu hồ sơ nhập học', type: 'Node', zone: 'external', parentId: 'id-ae89329e1c4e4c66ab89985266412c5d', x: 326, y: 530, w: 222, h: 86, desc: 'Hệ thống quản lý dữ liệu tuyển sinh đầu vào của sinh viên.' },
+      { id: 'id-8ee9023c349c4ac6bd6431f6f183591d', name: 'Hệ thống LMS', sub: 'Hệ thống quản lý học tập trực tuyến', type: 'Node', zone: 'external', parentId: 'id-ae89329e1c4e4c66ab89985266412c5d', x: 326, y: 650, w: 222, h: 86, desc: 'Hệ thống LMS cung cấp dữ liệu tương tác, bài tập và chuyên cần của sinh viên.' },
+      { id: 'id-21cb55876ff1420e91d3f9139ae91875', name: 'Hệ thống SIS', sub: 'Hệ thống thông tin sinh viên', type: 'Node', zone: 'external', parentId: 'id-ae89329e1c4e4c66ab89985266412c5d', x: 326, y: 770, w: 222, h: 86, desc: 'Hệ thống SIS lưu trữ hồ sơ học vụ, đăng ký học phần và kết quả điểm.' },
+      { id: 'id-7620344739f241efa56c53eb583429a4', name: 'Doanh nghiệp', sub: 'Hệ thống đối tác tuyển dụng/ thực tập', type: 'Node', zone: 'external', parentId: 'id-ae89329e1c4e4c66ab89985266412c5d', x: 326, y: 890, w: 222, h: 86, desc: 'Hệ thống bên ngoài từ doanh nghiệp cung cấp dữ liệu thực tập, việc làm và phản hồi.' },
+
+      // Zone 4: SSS Core Infrastructure Grouping & Members (17)
+      { id: 'id-3e2f3b40b4c14c92ac57ffc72f7a70dc', name: 'SSS', sub: 'SSS core system', type: 'Grouping', zone: 'sss_core', x: 632, y: 302, w: 1080, h: 923, isContainer: true, desc: 'Phân vùng hạ tầng lõi của SSS bao gồm máy chủ ứng dụng, hàng đợi thông điệp, cụm CSDL đồng bộ, Data Hub và giám sát.' },
+
+      // Sub-col 1 inside SSS: Middleware, Interface & Schema
+      { id: 'id-f71f071b17b54fb9b219db1dcc347058', name: 'Máy chủ xử lý Message Queue', sub: 'Hàng đợi tích hợp bất đồng bộ', type: 'Node', zone: 'sss_core', parentId: 'id-3e2f3b40b4c14c92ac57ffc72f7a70dc', x: 656, y: 540, w: 248, h: 92, desc: 'Tiếp nhận luồng sự kiện dữ liệu từ SIS, LMS, Tuyển sinh, Doanh nghiệp qua mạng LAN để đẩy vào ETL.' },
+      { id: 'id-a0ee04fd7b5e42b58e4acf1e3fd7c054', name: 'DB listener', sub: 'Cổng lắng nghe kết nối CSDL', type: 'TechnologyInterface', zone: 'sss_core', parentId: 'id-3e2f3b40b4c14c92ac57ffc72f7a70dc', x: 668, y: 740, w: 224, h: 82, desc: 'Giao diện kết nối cơ sở dữ liệu phục vụ SSS server node và Data Hub Node.' },
+      { id: 'id-3127a76313044df28ebbea331b69101a', name: 'Staging/Analytics schema', sub: 'Vùng lưu trữ trung gian & phân tích', type: 'Artifact', zone: 'sss_core', parentId: 'id-3e2f3b40b4c14c92ac57ffc72f7a70dc', x: 668, y: 920, w: 224, h: 88, desc: 'Cấu trúc dữ liệu Staging và kho phân tích phục vụ tổng hợp Student 360.' },
+
+      // Sub-col 2 inside SSS: SSS Server Node, Synchronous DB System, Backup Storage
+      { id: 'id-b89cd64b5557464baf810f76c387d30b', name: 'SSS server node', sub: 'Máy chủ ứng dụng Web & API lõi', type: 'Node', zone: 'sss_core', parentId: 'id-3e2f3b40b4c14c92ac57ffc72f7a70dc', x: 942, y: 365, w: 356, h: 185, isContainer: true, desc: 'Máy chủ chạy ứng dụng SSS, nhận lưu lượng từ Load Balancer và xác thực qua SSO HUST.' },
+      { id: 'id-51cdb97b0a7c42f09a1d132a0b33c82a', name: 'Hệ điều hành Windows', sub: 'Windows Server OS', type: 'SystemSoftware', zone: 'sss_core', parentId: 'id-b89cd64b5557464baf810f76c387d30b', x: 960, y: 432, w: 154, h: 98, desc: 'Hệ điều hành nền tảng vận hành trên SSS server node.' },
+      { id: 'id-c7fe7e414f79466ea02c2f4ada546fb2', name: 'Web Server IIS', sub: 'Internet Information Services', type: 'SystemSoftware', zone: 'sss_core', parentId: 'id-b89cd64b5557464baf810f76c387d30b', x: 1126, y: 432, w: 154, h: 98, desc: 'Máy chủ Web IIS tiếp nhận và xử lý các yêu cầu HTTP/HTTPS của ứng dụng SSS.' },
+
+      { id: 'id-97d11aa32aa24ef3a1fc642d2ee62125', name: 'Synchronous Database System', sub: 'Cụm CSDL đồng bộ sẵn sàng cao', type: 'TechnologyCollaboration', zone: 'sss_core', parentId: 'id-3e2f3b40b4c14c92ac57ffc72f7a70dc', x: 942, y: 605, w: 356, h: 285, isContainer: true, desc: 'Cụm cơ sở dữ liệu đồng bộ gồm nút Primary và Replica vận hành SQL Server.' },
+      { id: 'id-7a7130d26e114dada81a6604dc031e15', name: 'Primary Database Node', sub: 'Nút CSDL chính (Read/Write)', type: 'Node', zone: 'sss_core', parentId: 'id-97d11aa32aa24ef3a1fc642d2ee62125', x: 960, y: 672, w: 152, h: 88, desc: 'Máy chủ cơ sở dữ liệu chính xử lý giao dịch ghi và đồng bộ dữ liệu sang Replica.' },
+      { id: 'id-297f15a97ccf43808ad48159bbb57698', name: 'Replica Database Node', sub: 'Nút CSDL dự phòng (Sync)', type: 'Node', zone: 'sss_core', parentId: 'id-97d11aa32aa24ef3a1fc642d2ee62125', x: 1128, y: 672, w: 152, h: 88, desc: 'Máy chủ cơ sở dữ liệu bản sao đồng bộ theo thời gian thực từ Primary Database Node.' },
+      { id: 'id-014349080d684f5cb6126952ebc3383e', name: 'SQL Server', sub: 'Hệ quản trị CSDL quan hệ', type: 'SystemSoftware', zone: 'sss_core', parentId: 'id-97d11aa32aa24ef3a1fc642d2ee62125', x: 985, y: 792, w: 270, h: 78, desc: 'Hệ quản trị cơ sở dữ liệu Microsoft SQL Server được gán cho cả Primary và Replica Node.' },
+
+      { id: 'id-d18b43d123bd4dcdaa01d822875582d4', name: 'Backup Storage', sub: 'Hệ thống lưu trữ sao lưu định kỳ', type: 'Node', zone: 'sss_core', parentId: 'id-3e2f3b40b4c14c92ac57ffc72f7a70dc', x: 995, y: 945, w: 250, h: 84, desc: 'Hạ tầng lưu trữ bản sao lưu dữ liệu từ Synchronous Database System.' },
+
+      // Sub-col 3 inside SSS: Monitoring & Data Hub Node
+      { id: 'id-4d7794b31eb44d9d91b23be6dc973217', name: 'Monitoring & Audit Log Server', sub: 'Máy chủ giám sát & nhật ký kiểm toán', type: 'Node', zone: 'sss_core', parentId: 'id-3e2f3b40b4c14c92ac57ffc72f7a70dc', x: 1355, y: 365, w: 325, h: 92, desc: 'Thu thập nhật ký vận hành, truy vết kiểm toán từ SSS server node và cụm CSDL.' },
+
+      { id: 'id-f1329dd819ac415a9558ce7916d0fb2f', name: 'Data Hub Node', sub: 'Nút xử lý tích hợp & phân giải dữ liệu', type: 'Node', zone: 'sss_core', parentId: 'id-3e2f3b40b4c14c92ac57ffc72f7a70dc', x: 1345, y: 525, w: 342, h: 525, isContainer: true, desc: 'Máy chủ trung tâm thực thi các tiến trình ETL, phân giải định danh và cảnh báo học vụ.' },
+      { id: 'id-e0fbd2ee76124082998ddbf7388f360d', name: 'ETL/ Batch Scheduler', sub: 'Bộ lập lịch trích xuất & nạp dữ liệu', type: 'SystemSoftware', zone: 'sss_core', parentId: 'id-f1329dd819ac415a9558ce7916d0fb2f', x: 1378, y: 605, w: 276, h: 94, desc: 'Thành phần phần mềm điều phối tác vụ ETL nhận dữ liệu từ Message Queue.' },
+      { id: 'id-07eee8b9753b44a0b4d2ab2ad0a9281e', name: 'Identity Resolution', sub: 'Bộ máy phân giải & khớp định danh', type: 'SystemSoftware', zone: 'sss_core', parentId: 'id-f1329dd819ac415a9558ce7916d0fb2f', x: 1378, y: 755, w: 276, h: 94, desc: 'Đối chiếu và hợp nhất định danh sinh viên từ các nguồn tuyển sinh, SIS và LMS.' },
+      { id: 'id-9020e6cbe8f84eca9f21327a8d53b1f5', name: 'Alert Engine', sub: 'Bộ máy phân tích & sinh cảnh báo', type: 'SystemSoftware', zone: 'sss_core', parentId: 'id-f1329dd819ac415a9558ce7916d0fb2f', x: 1378, y: 905, w: 276, h: 94, desc: 'Phát hiện bất thường học vụ và kích hoạt cảnh báo sớm cho hệ thống.' }
+    ];
+
+    // =========================================================================
+    // 3. ALL 64 DIAGRAM RELATIONSHIPS FROM 'SSS - technology architecture.archimate'
+    //    (39 Explicit Visual Edges + 25 Nested Containment Edges)
+    // =========================================================================
+    const RELATIONS = [
+      // --- EXPLICIT VISUAL RELATIONSHIPS (39) ---
+      { id: 'id-dc40682c1cf443b281494994c9e579eb', type: 'Association', source: 'id-e64a8d036a2c454f90a181c571b3e8f8', target: 'id-ea62e42fec4a44babab4b37839528080', d: 'M 257,112 C 290,112 290,162 325,162' },
+      { id: 'id-fe6dab609c744f7dbc23dc37a29f65f8', type: 'Association', source: 'id-bbebe881fe5942e7966503fb02416030', target: 'id-ea62e42fec4a44babab4b37839528080', d: 'M 257,212 C 290,212 290,188 325,188' },
+      { id: 'id-8815eda69fca468c824344328f20918d', type: 'Realization', source: 'id-ea62e42fec4a44babab4b37839528080', target: 'id-c372f31b45bd4e00b309ba46e58d7a6a', d: 'M 442,135 L 442,104' },
+      { id: 'id-ca57a39dfc354250abb9744ac96dbbe9', type: 'Association', source: 'id-ea62e42fec4a44babab4b37839528080', target: 'id-3fc822f856b74ec9ae2fcd457fed49b6', d: 'M 365,219 C 330,255 210,255 172,292' },
+      { id: 'id-80fa87cd8c0a4565b541f27dfcc6b01f', type: 'Association', source: 'id-3fc822f856b74ec9ae2fcd457fed49b6', target: 'id-bff0bb641d094b81aebb2f9738c73c85', d: 'M 279,331 L 340,331' },
+      { id: 'id-a1b15ba6026d4d7c8a614e637efc4792', type: 'Flow', label: 'flows', lx: 585, ly: 215, source: 'id-bff0bb641d094b81aebb2f9738c73c85', target: 'id-f2789096e2d6445c9e4883eb88d8327c', d: 'M 565,331 C 605,331 595,138 650,138' },
+      { id: 'id-7b82111c119f4c95acdaac2885047382', type: 'Assignment', label: 'assigned to', lx: 1045, ly: 122, source: 'id-f2789096e2d6445c9e4883eb88d8327c', target: 'id-671f08ce08a34308b65c6f9d5758c850', d: 'M 980,138 L 1110,138' },
+      { id: 'id-d7118930beef453d81d9bd210e4dcdd5', type: 'Assignment', label: 'assigned to', lx: 1245, ly: 245, source: 'id-b89cd64b5557464baf810f76c387d30b', target: 'id-671f08ce08a34308b65c6f9d5758c850', d: 'M 1245,365 L 1245,179' },
+      { id: 'id-1f8b0421a98b4d6eb7d40a2f7b562ef1', type: 'Flow', label: 'flows', lx: 970, ly: 275, source: 'id-f2789096e2d6445c9e4883eb88d8327c', target: 'id-b89cd64b5557464baf810f76c387d30b', d: 'M 910,212 C 910,285 1025,285 1025,365' },
+
+      // Flows from External Systems to Message Queue
+      { id: 'id-bfc18b42c27a4db39e8b56a9af1b8176', type: 'Flow', source: 'id-7509d4fc056b4adca9e5e25b9ccc5bfa', target: 'id-f71f071b17b54fb9b219db1dcc347058', d: 'M 548,565 L 656,565' },
+      { id: 'id-667ed95b4a0548b5805805e974ded129', type: 'Flow', source: 'id-8ee9023c349c4ac6bd6431f6f183591d', target: 'id-f71f071b17b54fb9b219db1dcc347058', d: 'M 548,685 C 602,685 602,582 656,582' },
+      { id: 'id-5eb0f7a124914bbb8e92ddda0be415a8', type: 'Flow', source: 'id-21cb55876ff1420e91d3f9139ae91875', target: 'id-f71f071b17b54fb9b219db1dcc347058', d: 'M 548,805 C 612,805 612,598 656,598' },
+      { id: 'id-c4d251ac9dbe44dfb798bbd09ce9f4a5', type: 'Flow', source: 'id-7620344739f241efa56c53eb583429a4', target: 'id-f71f071b17b54fb9b219db1dcc347058', d: 'M 548,925 C 622,925 622,615 656,615' },
+      { id: 'id-a245016c7ff94c2b8d6b65019b855489', type: 'Flow', source: 'id-4b70ae37571548a782d8aab93e40833b', target: 'id-f71f071b17b54fb9b219db1dcc347058', d: 'M 296,546 C 460,505 550,548 656,548' },
+
+      // Mạng LAN Associations
+      { id: 'id-9e2a31d90a8c4536b32065c5283957df', type: 'Association', source: 'id-4b70ae37571548a782d8aab93e40833b', target: 'id-7509d4fc056b4adca9e5e25b9ccc5bfa', d: 'M 296,573 L 326,573' },
+      { id: 'id-3542156823784801b9b0260801a83f4e', type: 'Association', source: 'id-4b70ae37571548a782d8aab93e40833b', target: 'id-8ee9023c349c4ac6bd6431f6f183591d', d: 'M 296,595 C 312,595 312,675 326,675' },
+      { id: 'id-9aece482ea3c48529f30138d4a749a28', type: 'Association', source: 'id-4b70ae37571548a782d8aab93e40833b', target: 'id-21cb55876ff1420e91d3f9139ae91875', d: 'M 260,628 C 285,685 305,795 326,795' },
+      { id: 'id-76aae2c5178d44338c39efe295f19890', type: 'Association', source: 'id-4b70ae37571548a782d8aab93e40833b', target: 'id-ae89329e1c4e4c66ab89985266412c5d', d: 'M 68,579 L 48,579' },
+      { id: 'id-c03941af298248fb8b5b41ffe6954989', type: 'Association', source: 'id-4b70ae37571548a782d8aab93e40833b', target: 'id-f2789096e2d6445c9e4883eb88d8327c', d: 'M 230,530 C 265,420 595,420 695,212' },
+      { id: 'id-0d586d46183a41df957c162aea855769', type: 'Association', source: 'id-4b70ae37571548a782d8aab93e40833b', target: 'id-b89cd64b5557464baf810f76c387d30b', d: 'M 296,535 C 520,445 760,445 942,445' },
+      { id: 'id-573c2385a11d4849bea3d3ac5680ce07', type: 'Association', source: 'id-4b70ae37571548a782d8aab93e40833b', target: 'id-97d11aa32aa24ef3a1fc642d2ee62125', d: 'M 296,612 C 585,665 785,665 942,665' },
+      { id: 'id-c4bad15bdad849a28a6af255392b782d', type: 'Association', source: 'id-4b70ae37571548a782d8aab93e40833b', target: 'id-f1329dd819ac415a9558ce7916d0fb2f', d: 'M 296,530 C 680,485 1080,485 1345,560' },
+
+      // SSO & Notification Flows
+      { id: 'id-3cbf77eb8f9243a8be05b265ca13aef2', type: 'Serving', source: 'id-1229997191874889bfa395ca18bc9fa2', target: 'id-b89cd64b5557464baf810f76c387d30b', d: 'M 296,745 C 595,745 775,495 942,495' },
+      { id: 'id-770fccfb2a9845cea3a89309715260a6', type: 'Flow', source: 'id-b89cd64b5557464baf810f76c387d30b', target: 'id-1f07cc053e9c47adb832df2e80203b38', d: 'M 942,515 C 660,515 585,1045 182,1045 L 182,968' },
+
+      // SSS Core Internal Flows, Serving & Assignments
+      { id: 'id-6f5de46f2d484aac811437a8ecf6577f', type: 'Flow', source: 'id-f71f071b17b54fb9b219db1dcc347058', target: 'id-e0fbd2ee76124082998ddbf7388f360d', d: 'M 904,578 C 1110,578 1220,645 1378,645' },
+      { id: 'id-015455c9ca93481d93b14f118bbdd153', type: 'Flow', source: 'id-e0fbd2ee76124082998ddbf7388f360d', target: 'id-07eee8b9753b44a0b4d2ab2ad0a9281e', d: 'M 1516,699 L 1516,755' },
+      { id: 'id-abbdee95b29249178908dcaf0a24e1a6', type: 'Flow', source: 'id-07eee8b9753b44a0b4d2ab2ad0a9281e', target: 'id-9020e6cbe8f84eca9f21327a8d53b1f5', d: 'M 1516,849 L 1516,905' },
+
+      { id: 'id-d561128f0b204f19868adaa83dea7860', type: 'Serving', label: 'serves', lx: 1120, ly: 576, source: 'id-97d11aa32aa24ef3a1fc642d2ee62125', target: 'id-b89cd64b5557464baf810f76c387d30b', d: 'M 1120,605 L 1120,550' },
+      { id: 'id-1c4a3eff61f64cb7b206959e06b3eb12', type: 'Flow', label: 'synchronize', lx: 1120, ly: 642, source: 'id-7a7130d26e114dada81a6604dc031e15', target: 'id-297f15a97ccf43808ad48159bbb57698', d: 'M 1112,716 L 1128,716' },
+      { id: 'id-6e329ae38b5548448146e4462b5a3b32', type: 'Assignment', label: 'assigned to', lx: 1018, ly: 774, source: 'id-7a7130d26e114dada81a6604dc031e15', target: 'id-014349080d684f5cb6126952ebc3383e', d: 'M 1036,760 L 1036,792' },
+      { id: 'id-488868eceabe49c08bd18a12416213bb', type: 'Assignment', label: 'assigned to', lx: 1222, ly: 774, source: 'id-297f15a97ccf43808ad48159bbb57698', target: 'id-014349080d684f5cb6126952ebc3383e', d: 'M 1204,760 L 1204,792' },
+      { id: 'id-7de20c183a7041189e455037334c2db2', type: 'Assignment', source: 'id-7a7130d26e114dada81a6604dc031e15', target: 'id-a0ee04fd7b5e42b58e4acf1e3fd7c054', d: 'M 960,730 C 920,730 920,768 892,768' },
+      { id: 'id-5d8bf4b5ceac4c7d86865bb64e61e7f9', type: 'Assignment', source: 'id-297f15a97ccf43808ad48159bbb57698', target: 'id-a0ee04fd7b5e42b58e4acf1e3fd7c054', d: 'M 1204,672 C 1204,630 845,630 845,740' },
+      { id: 'id-4606cd06597f41178669fa54425dc8af', type: 'Serving', source: 'id-a0ee04fd7b5e42b58e4acf1e3fd7c054', target: 'id-b89cd64b5557464baf810f76c387d30b', d: 'M 780,740 C 780,620 915,525 942,525' },
+      { id: 'id-0e4b6281c7464c078cabe6f5b84c1a56', type: 'Serving', source: 'id-a0ee04fd7b5e42b58e4acf1e3fd7c054', target: 'id-f1329dd819ac415a9558ce7916d0fb2f', d: 'M 892,795 C 935,905 1295,905 1345,830' },
+
+      { id: 'id-37484db53a4c41d089a34cb02d00c9e2', type: 'Flow', source: 'id-97d11aa32aa24ef3a1fc642d2ee62125', target: 'id-d18b43d123bd4dcdaa01d822875582d4', d: 'M 1120,890 L 1120,945' },
+      { id: 'id-81ca06d9f7b24102befaa0abe5852fa3', type: 'Flow', source: 'id-97d11aa32aa24ef3a1fc642d2ee62125', target: 'id-3e2f3b40b4c14c92ac57ffc72f7a70dc', d: 'M 942,870 L 632,870' },
+      { id: 'id-858bcec4157f4e39b18f2405a8f54d6c', type: 'Flow', source: 'id-b89cd64b5557464baf810f76c387d30b', target: 'id-4d7794b31eb44d9d91b23be6dc973217', d: 'M 1298,411 L 1355,411' },
+      { id: 'id-99ba62c76ebc475cab09db8d50344d7d', type: 'Flow', source: 'id-97d11aa32aa24ef3a1fc642d2ee62125', target: 'id-4d7794b31eb44d9d91b23be6dc973217', d: 'M 1298,625 C 1328,625 1322,438 1355,438' },
+
+      // --- IMPLICIT NESTED CONTAINMENT RELATIONSHIPS (25) ---
+      { id: 'id-a0083c14f81c4f98b615ed4a0f23907b', type: 'Aggregation', isNested: true, source: 'id-f2789096e2d6445c9e4883eb88d8327c', target: 'id-699d840e6834490a9ee14bcc627c76fb', d: 'M 665,155 L 682,155' },
+
+      { id: 'id-3b5133110d52472a9683a5b632f40a55', type: 'Aggregation', isNested: true, source: 'id-ae89329e1c4e4c66ab89985266412c5d', target: 'id-7509d4fc056b4adca9e5e25b9ccc5bfa', d: 'M 437,465 L 437,530' },
+      { id: 'id-babcdd9fe8c8456b8b26208cc632ab39', type: 'Aggregation', isNested: true, source: 'id-ae89329e1c4e4c66ab89985266412c5d', target: 'id-8ee9023c349c4ac6bd6431f6f183591d', d: 'M 568,693 L 548,693' },
+      { id: 'id-b9bb7ea3d61342c3ba7b61f5702ee9df', type: 'Aggregation', isNested: true, source: 'id-ae89329e1c4e4c66ab89985266412c5d', target: 'id-21cb55876ff1420e91d3f9139ae91875', d: 'M 568,813 L 548,813' },
+      { id: 'id-bd2b2ffd23714f359c4ec4d82d84843f', type: 'Aggregation', isNested: true, source: 'id-ae89329e1c4e4c66ab89985266412c5d', target: 'id-7620344739f241efa56c53eb583429a4', d: 'M 568,933 L 548,933' },
+      { id: 'id-4dc26d846851484bbbc0ab7fb7fb5ecf', type: 'Aggregation', isNested: true, source: 'id-ae89329e1c4e4c66ab89985266412c5d', target: 'id-4b70ae37571548a782d8aab93e40833b', d: 'M 182,465 L 182,530' },
+      { id: 'id-e0fe2f9178ad4cb7a4f1126fa30b3087', type: 'Aggregation', isNested: true, source: 'id-ae89329e1c4e4c66ab89985266412c5d', target: 'id-1f07cc053e9c47adb832df2e80203b38', d: 'M 48,919 L 68,919' },
+      { id: 'id-c2f43d847d954516b7f26c5ccd944c42', type: 'Aggregation', isNested: true, source: 'id-ae89329e1c4e4c66ab89985266412c5d', target: 'id-1229997191874889bfa395ca18bc9fa2', d: 'M 48,749 L 68,749' },
+
+      { id: 'id-dbf59dc7d83a4b768d31b08592177b73', type: 'Aggregation', isNested: true, source: 'id-3e2f3b40b4c14c92ac57ffc72f7a70dc', target: 'id-97d11aa32aa24ef3a1fc642d2ee62125', d: 'M 920,650 L 942,650' },
+      { id: 'id-4c2e52fac32d44fead1a2c1e46280361', type: 'Aggregation', isNested: true, source: 'id-3e2f3b40b4c14c92ac57ffc72f7a70dc', target: 'id-d18b43d123bd4dcdaa01d822875582d4', d: 'M 1120,1225 L 1120,1029' },
+      { id: 'id-6cb76cf2c76748f0977160abc44ab858', type: 'Aggregation', isNested: true, source: 'id-3e2f3b40b4c14c92ac57ffc72f7a70dc', target: 'id-b89cd64b5557464baf810f76c387d30b', d: 'M 1120,302 L 1120,365' },
+      { id: 'id-29bc371710e644d6bf2d489720e0532f', type: 'Aggregation', isNested: true, source: 'id-3e2f3b40b4c14c92ac57ffc72f7a70dc', target: 'id-f1329dd819ac415a9558ce7916d0fb2f', d: 'M 1712,750 L 1687,750' },
+      { id: 'id-39b415127f6f4bb18ddff6bfc4c03660', type: 'Aggregation', isNested: true, source: 'id-3e2f3b40b4c14c92ac57ffc72f7a70dc', target: 'id-a0ee04fd7b5e42b58e4acf1e3fd7c054', d: 'M 632,781 L 668,781' },
+      { id: 'id-4ee15cb65db74d7e90cc7786ab5355c1', type: 'Aggregation', isNested: true, source: 'id-3e2f3b40b4c14c92ac57ffc72f7a70dc', target: 'id-f71f071b17b54fb9b219db1dcc347058', d: 'M 780,302 L 780,540' },
+      { id: 'id-15a1153b50214fe08233eac1d3516079', type: 'Aggregation', isNested: true, source: 'id-3e2f3b40b4c14c92ac57ffc72f7a70dc', target: 'id-3127a76313044df28ebbea331b69101a', d: 'M 780,1225 L 780,1008' },
+      { id: 'id-d6b7ab0b7289409bb8ab1a40e0596205', type: 'Aggregation', isNested: true, source: 'id-3e2f3b40b4c14c92ac57ffc72f7a70dc', target: 'id-4d7794b31eb44d9d91b23be6dc973217', d: 'M 1517,302 L 1517,365' },
+
+      { id: 'id-0c389967a5ae4c5bb4bdc705e2f61a70', type: 'Aggregation', isNested: true, source: 'id-97d11aa32aa24ef3a1fc642d2ee62125', target: 'id-7a7130d26e114dada81a6604dc031e15', d: 'M 1036,645 L 1036,672' },
+      { id: 'id-91555dd3995a45a79b9c93f12103e29a', type: 'Aggregation', isNested: true, source: 'id-97d11aa32aa24ef3a1fc642d2ee62125', target: 'id-297f15a97ccf43808ad48159bbb57698', d: 'M 1204,645 L 1204,672' },
+
+      { id: 'id-bfe7fb43234e4d53adb0b2f570da1652', type: 'Composition', isNested: true, source: 'id-b89cd64b5557464baf810f76c387d30b', target: 'id-51cdb97b0a7c42f09a1d132a0b33c82a', d: 'M 1037,405 L 1037,432' },
+      { id: 'id-b59f59e2c54c4a8db5e4f3727e087ef8', type: 'Association', isNested: true, source: 'id-b89cd64b5557464baf810f76c387d30b', target: 'id-51cdb97b0a7c42f09a1d132a0b33c82a', d: 'M 1052,405 L 1052,432' },
+      { id: 'id-19dfb397b3bb4b57a8c75f29d14f7aa2', type: 'Composition', isNested: true, source: 'id-b89cd64b5557464baf810f76c387d30b', target: 'id-c7fe7e414f79466ea02c2f4ada546fb2', d: 'M 1203,405 L 1203,432' },
+      { id: 'id-ba1a3dcbed52432199b9c95ee7622ce3', type: 'Association', isNested: true, source: 'id-b89cd64b5557464baf810f76c387d30b', target: 'id-c7fe7e414f79466ea02c2f4ada546fb2', d: 'M 1218,405 L 1218,432' },
+
+      { id: 'id-f806a31fc1384488bc5f927c17e7bba1', type: 'Composition', isNested: true, source: 'id-f1329dd819ac415a9558ce7916d0fb2f', target: 'id-e0fbd2ee76124082998ddbf7388f360d', d: 'M 1345,652 L 1378,652' },
+      { id: 'id-42c091cd0a9d4729859de95d02214bf6', type: 'Composition', isNested: true, source: 'id-f1329dd819ac415a9558ce7916d0fb2f', target: 'id-07eee8b9753b44a0b4d2ab2ad0a9281e', d: 'M 1345,802 L 1378,802' },
+      { id: 'id-2966b534e8fc48a7a62da5085ee86e61', type: 'Composition', isNested: true, source: 'id-f1329dd819ac415a9558ce7916d0fb2f', target: 'id-9020e6cbe8f84eca9f21327a8d53b1f5', d: 'M 1345,952 L 1378,952' }
+    ];
+
+    const REL_STYLES = {
+      Realization: { color: '#3b82f6', dash: '5,4', end: 'url(#mk-realization)' },
+      Serving:     { color: '#10b981', dash: '',    end: 'url(#mk-serving)' },
+      Flow:        { color: '#ef4444', dash: '6,3', end: 'url(#mk-flow)' },
+      Assignment:  { color: '#a855f7', dash: '',    start: 'url(#mk-assignment-start)', end: 'url(#mk-assignment-end)' },
+      Association: { color: '#94a3b8', dash: '' },
+      Aggregation: { color: '#06b6d4', dash: '',    start: 'url(#mk-aggregation-start)' },
+      Composition: { color: '#eab308', dash: '',    start: 'url(#mk-composition-start)' }
+    };
+
+    const ZONE_ACCENTS = {
+      client_wan: { fillDark: '#172554', strokeDark: '#3b82f6', fillLight: '#dbeafe', strokeLight: '#1d4ed8' },
+      edge:       { fillDark: '#2e1065', strokeDark: '#a855f7', fillLight: '#f3e8ff', strokeLight: '#7e22ce' },
+      external:   { fillDark: '#451a03', strokeDark: '#f59e0b', fillLight: '#fef3c7', strokeLight: '#b45309' },
+      sss_core:   { fillDark: '#064e3b', strokeDark: '#10b981', fillLight: '#d1fae5', strokeLight: '#047857' }
+    };
+
+    // =========================================================================
+    // 4. STATE MANAGEMENT
+    // =========================================================================
+    let state = {
+      zoom: 1,
+      panX: 0,
+      panY: 0,
+      isPanning: false,
+      startX: 0,
+      startY: 0,
+      lightMode: false,
+      semanticColors: false,
+      showRelLabels: true,
+      showNested: false,
+      selectedId: null,
+      search: '',
+      zones: { client_wan: true, edge: true, external: true, sss_core: true },
+      relTypes: { Flow: true, Association: true, Aggregation: true, Assignment: true, Composition: true, Serving: true, Realization: true }
+    };
+
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+    function svgEl(tag, attrs = {}) {
+      const el = document.createElementNS(SVG_NS, tag);
+      for (const [k, v] of Object.entries(attrs)) {
+        el.setAttribute(k, v);
+      }
+      return el;
+    }
+
+    // =========================================================================
+    // 5. RENDER DIAGRAM
+    // =========================================================================
+    function renderDiagram() {
+      const isLight = state.lightMode;
+      const layerGroups = document.getElementById('layer-groups');
+      const containersLayer = document.getElementById('containers-layer');
+      const relLayer = document.getElementById('relations-layer');
+      const nodesLayer = document.getElementById('nodes-layer');
+      layerGroups.innerHTML = '';
+      containersLayer.innerHTML = '';
+      relLayer.innerHTML = '';
+      nodesLayer.innerHTML = '';
+
+      // 5.1 Render Architectural Zone Backdrops
+      ZONES.forEach(g => {
+        if (!state.zones[g.zone]) return;
+        const grp = svgEl('g', { 'data-zone': g.zone });
+        grp.appendChild(svgEl('rect', {
+          x: g.x, y: g.y, width: g.w, height: g.h, rx: 10,
+          fill: isLight ? '#ffffff' : '#0f172a',
+          stroke: isLight ? '#cbd5e1' : '#334155',
+          'stroke-width': '1.4',
+          'stroke-dasharray': '4,3'
+        }));
+        grp.appendChild(svgEl('rect', {
+          x: g.x + 12, y: g.y + 8, width: g.name.length * 6.8 + 20, height: 21, rx: 5,
+          fill: isLight ? '#d1fae5' : '#1e293b',
+          stroke: isLight ? '#10b981' : '#334155',
+          'stroke-width': '1'
+        }));
+        const lbl = svgEl('text', {
+          x: g.x + 22, y: g.y + 22,
+          fill: isLight ? '#065f46' : '#34d399',
+          'font-size': '10.5',
+          'font-weight': '700',
+          'letter-spacing': '0.05em'
+        });
+        lbl.textContent = g.name;
+        grp.appendChild(lbl);
+        layerGroups.appendChild(grp);
+      });
+
+      // 5.2 Render Elements (Containers first, then Leaf Nodes on top)
+      const orderedElements = [
+        ...ELEMENTS.filter(e => e.isContainer),
+        ...ELEMENTS.filter(e => !e.isContainer)
+      ];
+
+      orderedElements.forEach(el => {
+        if (!state.zones[el.zone]) return;
+        const targetLayer = el.isContainer ? containersLayer : nodesLayer;
+
+        let fillColor = isLight ? '#dcfce7' : '#0d2a24';
+        let strokeColor = isLight ? '#047857' : '#10b981';
+
+        if (state.semanticColors) {
+          const acc = ZONE_ACCENTS[el.zone];
+          fillColor = isLight ? acc.fillLight : acc.fillDark;
+          strokeColor = isLight ? acc.strokeLight : acc.strokeDark;
+        }
+        if (el.isContainer) {
+          fillColor = isLight ? (el.type === 'Grouping' ? '#f0fdf4' : '#ecfdf5') : (el.type === 'Grouping' ? '#0b1917' : '#0a221d');
+        }
+
+        const rx = el.type === 'TechnologyInterface' ? 18 : (el.type === 'Artifact' ? 3 : 8);
+        const ng = svgEl('g', {
+          class: 'archi-node' + (state.selectedId === el.id ? ' selected' : ''),
+          'data-node-id': el.id,
+          'data-zone': el.zone
+        });
+        ng.addEventListener('click', e => { e.stopPropagation(); inspectElement(el.id); });
+        ng.addEventListener('mouseenter', () => highlightItem(el.id, false));
+        ng.addEventListener('mouseleave', () => clearHighlight());
+
+        const boxAttrs = {
+          class: 'node-box',
+          x: el.x, y: el.y, width: el.w, height: el.h, rx: rx,
+          fill: fillColor,
+          stroke: strokeColor,
+          'stroke-width': el.isContainer ? '1.9' : '1.6'
+        };
+        if (el.type === 'Grouping') {
+          boxAttrs['stroke-dasharray'] = '6,3';
+        }
+        ng.appendChild(svgEl('rect', boxAttrs));
+
+        // Official ArchiMate 3.x Technology Symbol Top-Right
+        const iconMap = {
+          Node:                    { href: '#archi-icon-node',      w: 21, h: 19, dx: 29, dy: 9 },
+          Device:                  { href: '#archi-icon-device',    w: 21, h: 19, dx: 29, dy: 9 },
+          SystemSoftware:          { href: '#archi-icon-software',  w: 21, h: 19, dx: 29, dy: 9 },
+          TechnologyCollaboration: { href: '#archi-icon-collab',    w: 23, h: 17, dx: 31, dy: 10 },
+          TechnologyInterface:     { href: '#archi-icon-interface', w: 23, h: 17, dx: 31, dy: 10 },
+          CommunicationNetwork:    { href: '#archi-icon-network',   w: 23, h: 17, dx: 31, dy: 10 },
+          Path:                    { href: '#archi-icon-path',      w: 23, h: 17, dx: 31, dy: 10 },
+          Artifact:                { href: '#archi-icon-artifact',  w: 21, h: 17, dx: 29, dy: 10 },
+          Grouping:                { href: '#archi-icon-grouping',  w: 21, h: 17, dx: 29, dy: 10 }
+        };
+        const ic = iconMap[el.type] || iconMap.Node;
+        ng.appendChild(svgEl('use', {
+          href: ic.href,
+          x: el.x + el.w - ic.dx,
+          y: el.y + ic.dy,
+          width: ic.w,
+          height: ic.h
+        }));
+
+        // Element Name & Subtitle with smart multi-line wrapping
+        const titleColor = isLight ? '#0f172a' : '#d1fae5';
+        const subColor = isLight ? '#475569' : '#94a3b8';
+        const maxChars = Math.max(16, Math.floor((el.w - 42) / 6.8));
+
+        if (el.name.length > maxChars && el.name.includes(' ')) {
+          const mid = el.name.lastIndexOf(' ', maxChars);
+          const line1 = mid > 0 ? el.name.slice(0, mid) : el.name;
+          const line2 = mid > 0 ? el.name.slice(mid + 1) : '';
+
+          const t1 = svgEl('text', {
+            x: el.x + 12, y: el.y + 24,
+            fill: titleColor, 'font-size': '12', 'font-weight': '700'
+          });
+          t1.textContent = line1;
+          ng.appendChild(t1);
+
+          const t2 = svgEl('text', {
+            x: el.x + 12, y: el.y + 39,
+            fill: titleColor, 'font-size': '12', 'font-weight': '700'
+          });
+          t2.textContent = line2;
+          ng.appendChild(t2);
+
+          const ts = svgEl('text', {
+            x: el.x + 12, y: el.y + 56,
+            fill: subColor, 'font-size': '10.5'
+          });
+          ts.textContent = el.sub;
+          ng.appendChild(ts);
+        } else {
+          const t1 = svgEl('text', {
+            x: el.x + 12, y: el.y + 26,
+            fill: titleColor, 'font-size': '12.5', 'font-weight': '700'
+          });
+          t1.textContent = el.name;
+          ng.appendChild(t1);
+
+          const ts = svgEl('text', {
+            x: el.x + 12, y: el.y + 44,
+            fill: subColor, 'font-size': '10.5'
+          });
+          ts.textContent = el.sub;
+          ng.appendChild(ts);
+        }
+
+        targetLayer.appendChild(ng);
+      });
+
+      // 5.3 Render Relationships
+      RELATIONS.forEach(r => {
+        if (r.isNested && !state.showNested) return;
+        const srcEl = ELEMENTS.find(e => e.id === r.source);
+        const tgtEl = ELEMENTS.find(e => e.id === r.target);
+        if (!srcEl || !tgtEl) return;
+        if (!state.zones[srcEl.zone] || !state.zones[tgtEl.zone]) return;
+        if (!state.relTypes[r.type]) return;
+
+        const st = REL_STYLES[r.type] || REL_STYLES.Association;
+        const rg = svgEl('g', {
+          class: 'archi-rel',
+          'data-rel-id': r.id,
+          'data-source': r.source,
+          'data-target': r.target,
+          'data-type': r.type
+        });
+        rg.addEventListener('click', e => { e.stopPropagation(); inspectRelation(r.id); });
+        rg.addEventListener('mouseenter', () => highlightItem(r.id, true));
+        rg.addEventListener('mouseleave', () => clearHighlight());
+
+        // Wide transparent hit area
+        rg.appendChild(svgEl('path', {
+          d: r.d, fill: 'none', stroke: 'transparent', 'stroke-width': '13'
+        }));
+
+        const pathAttrs = {
+          class: 'rel-path',
+          d: r.d,
+          fill: 'none',
+          stroke: st.color,
+          'stroke-width': r.isNested ? '1.4' : '1.85',
+          'stroke-linecap': 'round'
+        };
+        if (st.dash) pathAttrs['stroke-dasharray'] = st.dash;
+        if (st.start) pathAttrs['marker-start'] = st.start;
+        if (st.end) pathAttrs['marker-end'] = st.end;
+        rg.appendChild(svgEl('path', pathAttrs));
+
+        // Relationship Label Badge (flows, assigned to, serves, synchronize)
+        if (r.label && state.showRelLabels) {
+          const bw = r.label.length * 6.2 + 16;
+          const bh = 19;
+          rg.appendChild(svgEl('rect', {
+            x: r.lx - bw / 2, y: r.ly - bh / 2, width: bw, height: bh, rx: 9.5,
+            fill: isLight ? '#ffffff' : '#0f172a',
+            stroke: st.color,
+            'stroke-width': '1.2'
+          }));
+          const t = svgEl('text', {
+            x: r.lx, y: r.ly + 3.5,
+            'text-anchor': 'middle',
+            fill: isLight ? '#0f172a' : st.color,
+            'font-size': '10',
+            'font-weight': '700'
+          });
+          t.textContent = r.label;
+          rg.appendChild(t);
+        }
+
+        relLayer.appendChild(rg);
+      });
+
+      if (state.search) applySearchDimming();
+    }
+
+    // =========================================================================
+    // 6. HOVER HIGHLIGHT & SEARCH
+    // =========================================================================
+    function highlightItem(id, isRel) {
+      if (state.search) return;
+      const connectedNodes = new Set();
+      const connectedRels = new Set();
+
+      if (isRel) {
+        const rel = RELATIONS.find(r => r.id === id);
+        if (rel) {
+          connectedRels.add(rel.id);
+          connectedNodes.add(rel.source);
+          connectedNodes.add(rel.target);
+        }
+      } else {
+        connectedNodes.add(id);
+        RELATIONS.forEach(r => {
+          if (r.source === id || r.target === id) {
+            connectedRels.add(r.id);
+            connectedNodes.add(r.source);
+            connectedNodes.add(r.target);
+          }
+        });
+      }
+
+      document.querySelectorAll('.archi-node').forEach(n => {
+        const nid = n.getAttribute('data-node-id');
+        n.classList.toggle('dimmed', !connectedNodes.has(nid));
+        n.classList.toggle('highlighted', connectedNodes.has(nid));
+      });
+      document.querySelectorAll('.archi-rel').forEach(r => {
+        const rid = r.getAttribute('data-rel-id');
+        r.classList.toggle('dimmed', !connectedRels.has(rid));
+        r.classList.toggle('highlighted', connectedRels.has(rid));
+      });
+    }
+
+    function clearHighlight() {
+      if (state.search) {
+        applySearchDimming();
+        return;
+      }
+      document.querySelectorAll('.archi-node, .archi-rel').forEach(el => {
+        el.classList.remove('dimmed', 'highlighted');
+      });
+    }
+
+    function handleSearch(val) {
+      state.search = val.trim().toLowerCase();
+      if (!state.search) {
+        clearHighlight();
+        return;
+      }
+      applySearchDimming();
+    }
+
+    function applySearchDimming() {
+      const q = state.search;
+      const matchedNodes = new Set();
+      ELEMENTS.forEach(e => {
+        if (e.name.toLowerCase().includes(q) || e.sub.toLowerCase().includes(q) || e.type.toLowerCase().includes(q) || e.id.toLowerCase().includes(q)) {
+          matchedNodes.add(e.id);
+        }
+      });
+      const matchedRels = new Set();
+      RELATIONS.forEach(r => {
+        if ((r.label && r.label.toLowerCase().includes(q)) || r.type.toLowerCase().includes(q) || r.id.toLowerCase().includes(q)) {
+          matchedRels.add(r.id);
+          matchedNodes.add(r.source);
+          matchedNodes.add(r.target);
+        }
+      });
+
+      document.querySelectorAll('.archi-node').forEach(n => {
+        const nid = n.getAttribute('data-node-id');
+        n.classList.toggle('dimmed', !matchedNodes.has(nid));
+      });
+      document.querySelectorAll('.archi-rel').forEach(r => {
+        const rid = r.getAttribute('data-rel-id');
+        r.classList.toggle('dimmed', !matchedRels.has(rid));
+      });
+    }
+
+    // =========================================================================
+    // 7. INSPECTOR DRAWER
+    // =========================================================================
+    function inspectElement(id) {
+      const el = ELEMENTS.find(e => e.id === id);
+      if (!el) return;
+      state.selectedId = id;
+      renderDiagram();
+
+      const incoming = RELATIONS.filter(r => r.target === id);
+      const outgoing = RELATIONS.filter(r => r.source === id);
+
+      const insp = document.getElementById('inspector');
+      const body = document.getElementById('inspector-body');
+      insp.classList.add('open');
+
+      body.innerHTML = `
+        <div class="insp-card">
+          <span class="badge-pill" style="margin-bottom:8px;display:inline-block;">${el.type}</span>
+          <h3 style="font-size:15px;margin-bottom:4px;">${el.name}</h3>
+          <div style="color:var(--accent);font-size:12px;font-weight:600;margin-bottom:8px;">${el.sub}</div>
+          <p style="color:var(--text-sub);font-size:12px;line-height:1.5;margin-bottom:8px;">${el.desc}</p>
+          <div style="font-family:monospace;font-size:11px;color:var(--text-sub);background:var(--bg-panel);padding:5px 8px;border-radius:5px;border:1px solid var(--border);">XML ID: ${el.id}</div>
+        </div>
+
+        <div class="insp-card">
+          <strong style="font-size:12px;">Quan hệ đi vào (${incoming.length})</strong>
+          ${incoming.length === 0 ? '<div style="color:var(--text-sub);font-size:11.5px;margin-top:4px;">Không có</div>' : incoming.map(r => {
+            const s = ELEMENTS.find(x => x.id === r.source);
+            return `<div class="insp-rel-item" onclick="inspectElement('${s.id}')">
+              <div style="font-weight:700;color:var(--accent);">${r.type}${r.label ? ' [' + r.label + ']' : ''}${r.isNested ? ' (Nested)' : ''}</div>
+              <div>← Từ: <strong>${s ? s.name : r.source}</strong></div>
+            </div>`;
+          }).join('')}
+        </div>
+
+        <div class="insp-card">
+          <strong style="font-size:12px;">Quan hệ đi ra (${outgoing.length})</strong>
+          ${outgoing.length === 0 ? '<div style="color:var(--text-sub);font-size:11.5px;margin-top:4px;">Không có</div>' : outgoing.map(r => {
+            const t = ELEMENTS.find(x => x.id === r.target);
+            return `<div class="insp-rel-item" onclick="inspectElement('${t.id}')">
+              <div style="font-weight:700;color:var(--accent);">${r.type}${r.label ? ' [' + r.label + ']' : ''}${r.isNested ? ' (Nested)' : ''}</div>
+              <div>→ Tới: <strong>${t ? t.name : r.target}</strong></div>
+            </div>`;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    function inspectRelation(id) {
+      const r = RELATIONS.find(x => x.id === id);
+      if (!r) return;
+      const s = ELEMENTS.find(x => x.id === r.source);
+      const t = ELEMENTS.find(x => x.id === r.target);
+
+      const insp = document.getElementById('inspector');
+      const body = document.getElementById('inspector-body');
+      insp.classList.add('open');
+
+      body.innerHTML = `
+        <div class="insp-card">
+          <span class="badge-pill" style="margin-bottom:8px;display:inline-block;">${r.type}Relationship</span>
+          <h3 style="font-size:14px;margin-bottom:6px;">${s.name} → ${t.name}</h3>
+          ${r.label ? `<div style="margin:6px 0;padding:6px 9px;border-radius:6px;background:var(--bg-panel);border:1px solid var(--accent);color:var(--accent);font-weight:700;">Nhãn quan hệ: ${r.label}</div>` : ''}
+          ${r.isNested ? `<div style="margin:6px 0;color:#06b6d4;font-weight:600;font-size:11.5px;">Biểu diễn lồng ghép trực quan (Containment)</div>` : ''}
+          <div style="font-family:monospace;font-size:11px;color:var(--text-sub);background:var(--bg-panel);padding:5px 8px;border-radius:5px;border:1px solid var(--border);margin-top:8px;">XML ID: ${r.id}</div>
+        </div>
+        <div class="insp-card">
+          <div class="insp-rel-item" onclick="inspectElement('${s.id}')">Nguồn (Source): <strong>${s.name}</strong></div>
+          <div class="insp-rel-item" onclick="inspectElement('${t.id}')">Đích (Target): <strong>${t.name}</strong></div>
+        </div>
+      `;
+    }
+
+    function focusRelation(relId) {
+      switchTab('diagram');
+      highlightItem(relId, true);
+      inspectRelation(relId);
+    }
+
+    function closeInspector() {
+      document.getElementById('inspector').classList.remove('open');
+      state.selectedId = null;
+      renderDiagram();
+    }
+
+    // =========================================================================
+    // 8. BULLETPROOF OFFLINE PNG & SVG EXPORT ENGINE (ZERO <use> DEPENDENCIES)
+    // =========================================================================
+    function buildStandaloneSvgString(exportTheme = 'light') {
+      const prevLight = state.lightMode;
+      const targetLight = (exportTheme === 'light');
+      if (prevLight !== targetLight) {
+        state.lightMode = targetLight;
+        renderDiagram();
+      }
+
+      const originalSvg = document.getElementById('diagram-svg');
+      const clone = originalSvg.cloneNode(true);
+
+      if (prevLight !== targetLight) {
+        state.lightMode = prevLight;
+        renderDiagram();
+      }
+
+      clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      clone.setAttribute('width', '1760');
+      clone.setAttribute('height', '1270');
+      clone.setAttribute('viewBox', '0 0 1760 1270');
+      clone.removeAttribute('style');
+      clone.removeAttribute('id');
+
+      const bgRect = document.createElementNS(SVG_NS, 'rect');
+      bgRect.setAttribute('x', '0');
+      bgRect.setAttribute('y', '0');
+      bgRect.setAttribute('width', '1760');
+      bgRect.setAttribute('height', '1270');
+      bgRect.setAttribute('fill', targetLight ? '#f8fafc' : '#080d1a');
+      clone.insertBefore(bgRect, clone.firstChild);
+
+      clone.querySelectorAll('use').forEach(useEl => {
+        const ref = useEl.getAttribute('href') || useEl.getAttribute('xlink:href');
+        if (!ref) return;
+        const sym = document.querySelector(ref);
+        if (!sym) return;
+        const x = parseFloat(useEl.getAttribute('x') || '0');
+        const y = parseFloat(useEl.getAttribute('y') || '0');
+        const g = document.createElementNS(SVG_NS, 'g');
+        g.setAttribute('transform', `translate(${x}, ${y})`);
+        Array.from(sym.children).forEach(child => {
+          g.appendChild(child.cloneNode(true));
+        });
+        useEl.replaceWith(g);
+      });
+
+      const defs = clone.querySelector('defs');
+      if (defs) {
+        defs.querySelectorAll('symbol').forEach(s => s.remove());
+      }
+      clone.querySelectorAll('*').forEach(el => {
+        el.removeAttribute('class');
+        if (el.tagName === 'text' && !el.getAttribute('font-family')) {
+          el.setAttribute('font-family', 'Segoe UI, Roboto, Helvetica, Arial, sans-serif');
+        }
+      });
+
+      let xmlStr = new XMLSerializer().serializeToString(clone);
+      xmlStr = xmlStr.replace(/<!--[\s\S]*?-->/g, '');
+      return '<?xml version="1.0" encoding="UTF-8"?>\n' + xmlStr;
+    }
+
+    function exportSVG() {
+      closeMenus();
+      const svgStr = buildStandaloneSvgString(state.lightMode ? 'light' : 'dark');
+      const blob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'SSS-Technology-Architecture.svg';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      showToast('Đã xuất tệp vector SVG chuẩn!');
+    }
+
+    let latestPngDataUrl = '';
+    function exportPNG(exportTheme = 'light') {
+      closeMenus();
+      showToast('Đang kết xuất ảnh PNG 2x HD...');
+
+      const svgStr = buildStandaloneSvgString(exportTheme);
+      const base64Svg = btoa(unescape(encodeURIComponent(svgStr)));
+      const svgDataUri = 'data:image/svg+xml;base64,' + base64Svg;
+
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.createElement('canvas');
+        canvas.width = 3520;
+        canvas.height = 2540;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = exportTheme === 'light' ? '#f8fafc' : '#080d1a';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        latestPngDataUrl = canvas.toDataURL('image/png');
+
+        const previewImg = document.getElementById('png-preview-img');
+        const dlLink = document.getElementById('png-download-link');
+        const modeBadge = document.getElementById('png-mode-badge');
+        const sizeInfo = document.getElementById('png-size-info');
+
+        previewImg.src = latestPngDataUrl;
+        dlLink.href = latestPngDataUrl;
+        dlLink.download = exportTheme === 'light'
+          ? 'SSS-Technology-Architecture-Light.png'
+          : 'SSS-Technology-Architecture-Dark.png';
+        modeBadge.textContent = exportTheme === 'light' ? 'Nền trắng (Chuẩn báo cáo)' : 'Nền tối (Dark Mode)';
+        const kb = Math.round((latestPngDataUrl.length * 3 / 4) / 1024);
+        sizeInfo.textContent = `3520 × 2540 px • ~${kb} KB`;
+
+        document.getElementById('png-modal').classList.add('open');
+        dlLink.click();
+        showToast('Đã tạo xong ảnh PNG 2x HD!');
+      };
+
+      img.onerror = function(err) {
+        console.error('SVG-to-PNG error:', err);
+        showToast('Không thể kết xuất PNG trên trình duyệt này. Đang xuất SVG thay thế...');
+        exportSVG();
+      };
+
+      img.src = svgDataUri;
+    }
+
+    async function copyPngToClipboard() {
+      if (!latestPngDataUrl) return;
+      try {
+        const res = await fetch(latestPngDataUrl);
+        const blob = await res.blob();
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+        showToast('Đã sao chép ảnh PNG vào Clipboard! Nhấn Ctrl+V để dán.');
+      } catch (e) {
+        showToast('Trình duyệt không hỗ trợ sao chép ảnh trực tiếp. Hãy nhấn nút Tải xuống PNG.');
+      }
+    }
+
+    function closePngModal() {
+      document.getElementById('png-modal').classList.remove('open');
+    }
+
+    // =========================================================================
+    // 9. MATRIX & DICTIONARY TABLES
+    // =========================================================================
+    function renderTables() {
+      const flows = [
+        { zone: '1. Truy cập Người dùng & Biên', source: 'Smartphone (Sinh viên) / PC → Mạng WAN (HTTPS)', middle: 'Router/ Switch → Hardware Firewall → Cụm Cân bằng tải (Load Balancer)', target: 'SSS.hust.edu.vn → SSS server node (Windows + Web Server IIS)' },
+        { zone: '2. Xác thực & Thông báo', source: 'SSO Authentication (HUST) / SSS server node', middle: 'Mạng LAN (Data Center HUST)', target: 'SSS server node ↔ Cổng thông báo (Email/ SMS/...)' },
+        { zone: '3. Tích hợp Dữ liệu Đa nguồn', source: 'Hệ thống Tuyển sinh, LMS, SIS, Doanh nghiệp', middle: 'Máy chủ xử lý Message Queue', target: 'Data Hub Node (ETL/ Batch Scheduler → Identity Resolution → Alert Engine)' },
+        { zone: '4. Lưu trữ, Đồng bộ & Giám sát', source: 'SSS server node & Data Hub Node → DB listener', middle: 'Synchronous Database System (Primary DB ⇄ Replica DB • SQL Server)', target: 'Backup Storage, Staging/Analytics schema & Monitoring & Audit Log Server' }
+      ];
+      document.getElementById('matrix-container').innerHTML = `
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Luồng kiến trúc (Architecture Flow)</th>
+              <th>Nguồn phát sinh (Source Nodes)</th>
+              <th>Hạ tầng trung gian &amp; Điều phối</th>
+              <th>Đích xử lý &amp; Lưu trữ (Target Nodes)</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${flows.map(f => `<tr><td><strong>${f.zone}</strong></td><td>${f.source}</td><td>${f.middle}</td><td>${f.target}</td></tr>`).join('')}
+          </tbody>
+        </table>
+      `;
+
+      document.getElementById('dictionary-container').innerHTML = `
+        <h3 style="font-size:13.5px;margin-bottom:8px;">Danh sách 34 Phần tử ArchiMate (Technology &amp; Physical Layer)</h3>
+        <table class="data-table" style="margin-bottom:22px;">
+          <thead>
+            <tr><th>Tên phần tử</th><th>Mô tả vai trò</th><th>Loại ArchiMate</th><th>Mã XML ID</th><th>Thao tác</th></tr>
+          </thead>
+          <tbody>
+            ${ELEMENTS.map(e => `
+              <tr>
+                <td><strong>${e.name}</strong></td>
+                <td>${e.sub}</td>
+                <td><span class="badge-pill">${e.type}</span></td>
+                <td style="font-family:monospace;font-size:11px;">${e.id}</td>
+                <td><button class="btn" style="height:26px;font-size:11px;" onclick="switchTab('diagram');inspectElement('${e.id}')">Xem trên sơ đồ</button></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+
+        <h3 style="font-size:13.5px;margin-bottom:8px;">Danh sách 64 Mối quan hệ</h3>
+        <table class="data-table">
+          <thead>
+            <tr><th>Loại quan hệ</th><th>Nguồn (Source)</th><th>Đích (Target)</th><th>Nhãn / Kiểu hiển thị</th><th>Mã XML ID</th></tr>
+          </thead>
+          <tbody>
+            ${RELATIONS.map(r => {
+              const s = ELEMENTS.find(x => x.id === r.source);
+              const t = ELEMENTS.find(x => x.id === r.target);
+              return `<tr>
+                <td><strong>${r.type}</strong></td>
+                <td>${s ? s.name : r.source}</td>
+                <td>${t ? t.name : r.target}</td>
+                <td>${r.label || (r.isNested ? 'Nested Containment' : '—')}</td>
+                <td style="font-family:monospace;font-size:11px;">${r.id}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      `;
+    }
+
+    // =========================================================================
+    // 10. UI CONTROLS, PAN/ZOOM & INITIALIZATION
+    // =========================================================================
+    function switchTab(tab) {
+      document.querySelectorAll('.nav-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+      document.getElementById('tab-diagram').style.display = tab === 'diagram' ? 'block' : 'none';
+      document.getElementById('tab-matrix').classList.toggle('active', tab === 'matrix');
+      document.getElementById('tab-dictionary').classList.toggle('active', tab === 'dictionary');
+    }
+
+    function toggleTheme() {
+      state.lightMode = !state.lightMode;
+      document.body.classList.toggle('light-mode', state.lightMode);
+      renderDiagram();
+    }
+
+    function toggleColorMode() {
+      state.semanticColors = !state.semanticColors;
+      document.getElementById('btn-color-mode').classList.toggle('active-toggle', state.semanticColors);
+      renderDiagram();
+    }
+
+    function toggleRelLabels() {
+      state.showRelLabels = !state.showRelLabels;
+      document.getElementById('btn-rel-labels').classList.toggle('active-toggle', state.showRelLabels);
+      renderDiagram();
+    }
+
+    function toggleNestedRels(checked) {
+      state.showNested = checked;
+      renderDiagram();
+    }
+
+    function toggleZoneFilter(zone, checked) {
+      state.zones[zone] = checked;
+      renderDiagram();
+    }
+
+    function toggleRelFilter(type, checked) {
+      state.relTypes[type] = checked;
+      renderDiagram();
+    }
+
+    function resetAllFilters() {
+      state.zones = { client_wan: true, edge: true, external: true, sss_core: true };
+      state.relTypes = { Flow: true, Association: true, Aggregation: true, Assignment: true, Composition: true, Serving: true, Realization: true };
+      state.showNested = false;
+      state.search = '';
+      document.getElementById('search-input').value = '';
+      document.querySelectorAll('.sidebar input[type="checkbox"]').forEach(cb => {
+        cb.checked = (cb.id !== 'chk-nested');
+      });
+      renderDiagram();
+    }
+
+    function toggleExportMenu(e) {
+      e.stopPropagation();
+      document.getElementById('export-menu').classList.toggle('open');
+    }
+
+    function closeMenus() {
+      document.getElementById('export-menu').classList.remove('open');
+    }
+    document.addEventListener('click', closeMenus);
+
+    function applyTransform() {
+      const svg = document.getElementById('diagram-svg');
+      svg.style.transform = `translate(${state.panX}px, ${state.panY}px) scale(${state.zoom})`;
+      document.getElementById('zoom-label').textContent = Math.round(state.zoom * 100) + '%';
+    }
+
+    function changeZoom(delta) {
+      state.zoom = Math.min(2.2, Math.max(0.4, +(state.zoom + delta).toFixed(2)));
+      applyTransform();
+    }
+
+    function resetView() {
+      state.zoom = 1;
+      state.panX = 0;
+      state.panY = 0;
+      applyTransform();
+    }
+
+    const stage = document.getElementById('canvas-stage');
+    stage.addEventListener('mousedown', e => {
+      if (e.target.closest('.archi-node') || e.target.closest('.archi-rel')) return;
+      state.isPanning = true;
+      state.startX = e.clientX - state.panX;
+      state.startY = e.clientY - state.panY;
+    });
+    window.addEventListener('mousemove', e => {
+      if (!state.isPanning) return;
+      state.panX = e.clientX - state.startX;
+      state.panY = e.clientY - state.startY;
+      applyTransform();
+    });
+    window.addEventListener('mouseup', () => { state.isPanning = false; });
+    stage.addEventListener('wheel', e => {
+      e.preventDefault();
+      changeZoom(e.deltaY < 0 ? 0.08 : -0.08);
+    }, { passive: false });
+
+    let toastTimer;
+    function showToast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 3600);
+    }
+
+    // Boot
+    renderDiagram();
+    renderTables();
+    if (window.innerHeight < 950) {
+      state.zoom = 0.64;
+      applyTransform();
+    }
+  </script>
+</body>
+</html>

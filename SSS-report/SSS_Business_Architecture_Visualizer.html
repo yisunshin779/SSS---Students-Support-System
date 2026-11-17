@@ -1,0 +1,2044 @@
+<!DOCTYPE html>
+<html lang="vi" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ArchiMate Enterprise Architecture - Student MDM & Academic Health</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            archi: {
+              actorBg: '#FEF9C3',
+              actorBorder: '#CA8A04',
+              serviceBg: '#FEF08A',
+              serviceBorder: '#EAB308',
+              processBg: '#FDE047',
+              processBorder: '#D97706',
+              objectBg: '#FEF3C7',
+              objectBorder: '#F59E0B',
+              layerBg: '#F8FAFC',
+              layerBorder: '#CBD5E1',
+              layerDarkBg: '#1E293B',
+              layerDarkBorder: '#334155'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- Google Fonts & FontAwesome -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Safe early stubs so inline SVG mouse events never throw ReferenceError during initial DOM parsing -->
+  <script>
+    window.highlightNode = window.highlightNode || function () {};
+    window.clearHighlight = window.clearHighlight || function () {};
+    window.selectNode = window.selectNode || function () {};
+    window.selectRelation = window.selectRelation || function () {};
+    window.highlightRelation = window.highlightRelation || function () {};
+  </script>
+
+  <style>
+    /* SVG Styling & Transition effects */
+    .arch-node {
+      cursor: pointer;
+      transition: transform 0.15s ease, filter 0.2s ease, opacity 0.25s ease;
+    }
+    .arch-node:hover {
+      filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.18));
+    }
+    .arch-edge {
+      cursor: pointer;
+      transition: stroke 0.2s ease, stroke-width 0.2s ease, opacity 0.25s ease;
+    }
+    .arch-edge:hover {
+      stroke: #2563EB !important;
+      stroke-width: 3.5px !important;
+    }
+    .arch-node:hover {
+      filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.18));
+    }
+    .arch-edge {
+      transition: stroke 0.2s ease, stroke-width 0.2s ease, opacity 0.25s ease;
+    }
+    .edge-highlight {
+      stroke: #2563EB !important;
+      stroke-width: 3.5px !important;
+      filter: drop-shadow(0 0 6px rgba(37, 99, 235, 0.6));
+    }
+    .dimmed {
+      opacity: 0.12 !important;
+    }
+    .active-node rect {
+      stroke-width: 3px !important;
+      stroke: #2563EB !important;
+      filter: drop-shadow(0 0 10px rgba(37, 99, 235, 0.45));
+    }
+    .edge-label-group {
+      transition: opacity 0.25s ease, transform 0.2s ease;
+    }
+    .edge-label-highlight rect {
+      stroke: #2563EB !important;
+      stroke-width: 2px !important;
+      filter: drop-shadow(0 2px 8px rgba(37, 99, 235, 0.45));
+    }
+    
+    /* Scrollbar styles */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.05);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(100, 116, 139, 0.3);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(100, 116, 139, 0.6);
+    }
+    
+    /* Animation pulse */
+    @keyframes pulse-subtle {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    .pulse-effect {
+      animation: pulse-subtle 2s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="h-full bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans flex flex-col overflow-hidden select-none">
+
+  <!-- Top App Navigation Bar -->
+  <header class="h-16 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 px-4 flex items-center justify-between shrink-0 shadow-sm z-30">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 flex items-center justify-center font-black text-xl shadow-inner">
+        <i class="fa-solid fa-sitemap"></i>
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="text-base font-bold tracking-tight text-slate-900 dark:text-white">ArchiMate Student MDM 360 & Academic Health</h1>
+          <span class="text-xs px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 font-semibold border border-amber-300 dark:border-amber-800">ArchiMate 3.x</span>
+          <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 font-semibold border border-emerald-300 dark:border-emerald-800">100% XML Verified</span>
+        </div>
+        <p class="text-xs text-slate-500 dark:text-slate-400">Kiến trúc Quản trị Dữ liệu Học viên & Cảnh báo Sức khỏe Học vụ</p>
+      </div>
+    </div>
+
+    <!-- Center View Tabs -->
+    <div class="hidden md:flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
+      <button id="tabDiagramBtn" onclick="switchView('diagram')" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm flex items-center gap-2 transition">
+        <i class="fa-solid fa-project-diagram text-amber-500"></i> Sơ đồ tương tác
+      </button>
+      <button id="tabMatrixBtn" onclick="switchView('matrix')" class="px-3.5 py-1.5 text-xs font-medium rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center gap-2 transition">
+        <i class="fa-solid fa-table-cells text-blue-500"></i> Ma trận truy vết
+      </button>
+      <button id="tabDictionaryBtn" onclick="switchView('dictionary')" class="px-3.5 py-1.5 text-xs font-medium rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center gap-2 transition">
+        <i class="fa-solid fa-book-bookmark text-emerald-500"></i> Danh mục phần tử & quan hệ
+      </button>
+    </div>
+
+    <!-- Quick Tools & Actions -->
+    <div class="flex items-center gap-2">
+      <!-- Search input -->
+      <div class="relative w-48 lg:w-64">
+        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+        <input type="text" id="searchInput" placeholder="Tìm phần tử, ID, loại..." oninput="handleSearch(this.value)"
+          class="w-full pl-8 pr-3 py-1.5 text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 text-slate-800 dark:text-slate-200">
+        <div id="searchResults" class="hidden absolute left-0 right-0 top-full mt-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl max-h-72 overflow-y-auto z-50 p-1"></div>
+      </div>
+
+      <!-- Color Style Mode -->
+      <button id="colorModeBtn" onclick="toggleColorEncoding()" title="Chuyển chế độ màu sắc đường nối (Chuẩn EA / Phân loại trực quan)" 
+        class="h-8 px-2.5 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 flex items-center gap-1.5 shadow-sm">
+        <i class="fa-solid fa-palette text-amber-500"></i>
+        <span class="hidden xl:inline" id="colorModeLabel">Màu phân loại</span>
+      </button>
+
+      <!-- Toggle Access Read/Write Labels -->
+      <button id="accessLabelBtn" onclick="toggleAccessLabels()" title="Ẩn/Hiện nhãn Read / Write trên đường Access" 
+        class="h-8 px-2.5 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 flex items-center gap-1.5 shadow-sm">
+        <i class="fa-solid fa-tags text-blue-500"></i>
+        <span class="hidden xl:inline" id="accessLabelText">Nhãn Access</span>
+      </button>
+
+      <!-- Export dropdown button -->
+      <div class="relative group">
+        <button class="h-8 px-3 text-xs font-medium rounded-lg bg-amber-500 hover:bg-amber-600 text-white flex items-center gap-1.5 shadow-sm transition">
+          <i class="fa-solid fa-file-export"></i> Xuất bản <i class="fa-solid fa-chevron-down text-[10px]"></i>
+        </button>
+        <div class="hidden group-hover:block absolute right-0 top-full pt-1 w-44 z-50">
+          <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl py-1 text-xs">
+            <button onclick="exportDiagram('svg')" class="w-full text-left px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center gap-2">
+              <i class="fa-solid fa-bezier-curve text-indigo-500"></i> Xuất tệp SVG Vector
+            </button>
+            <button onclick="exportDiagram('png')" class="w-full text-left px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center gap-2">
+              <i class="fa-solid fa-image text-emerald-500"></i> Xuất ảnh PNG HD
+            </button>
+            <button onclick="window.print()" class="w-full text-left px-3 py-2 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center gap-2">
+              <i class="fa-solid fa-print text-slate-500"></i> In ấn / Lưu PDF
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dark Mode Toggle -->
+      <button onclick="toggleDarkMode()" title="Chuyển chế độ sáng/tối" class="w-8 h-8 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center justify-center">
+        <i id="themeIcon" class="fa-solid fa-moon"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Work Area -->
+  <div class="flex-1 flex overflow-hidden relative">
+
+    <!-- Left Controls & Filters Sidebar -->
+    <aside id="filterSidebar" class="w-72 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col shrink-0 z-20 transition-all duration-300">
+      <div class="p-3 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+        <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-2">
+          <i class="fa-solid fa-sliders text-amber-500"></i> Bộ lọc & Chú giải
+        </h2>
+        <button onclick="resetFilters()" class="text-[11px] text-amber-600 dark:text-amber-400 hover:underline">Khôi phục</button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-3 space-y-5 text-xs">
+        <!-- Layer Filter Section -->
+        <div>
+          <span class="font-bold text-slate-700 dark:text-slate-300 mb-2 block flex items-center justify-between">
+            <span>Tầng kiến trúc (Layers)</span>
+            <span class="text-[10px] bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-500">4 nhóm</span>
+          </span>
+          <div class="space-y-1.5">
+            <label class="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer">
+              <input type="checkbox" checked onchange="toggleLayerFilter('actors', this.checked)" class="rounded text-amber-500 focus:ring-amber-400">
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+              <span class="flex-1 font-medium text-slate-700 dark:text-slate-300">1. Business Actors & Roles</span>
+              <span class="text-[10px] text-slate-400">4</span>
+            </label>
+            <label class="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer">
+              <input type="checkbox" checked onchange="toggleLayerFilter('services', this.checked)" class="rounded text-amber-500 focus:ring-amber-400">
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-300"></span>
+              <span class="flex-1 font-medium text-slate-700 dark:text-slate-300">2. Business Services</span>
+              <span class="text-[10px] text-slate-400">4</span>
+            </label>
+            <label class="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer">
+              <input type="checkbox" checked onchange="toggleLayerFilter('processes', this.checked)" class="rounded text-amber-500 focus:ring-amber-400">
+              <span class="w-2.5 h-2.5 rounded-full bg-yellow-400"></span>
+              <span class="flex-1 font-medium text-slate-700 dark:text-slate-300">3. Business Processes</span>
+              <span class="text-[10px] text-slate-400">7</span>
+            </label>
+            <label class="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer">
+              <input type="checkbox" checked onchange="toggleLayerFilter('objects', this.checked)" class="rounded text-amber-500 focus:ring-amber-400">
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-200"></span>
+              <span class="flex-1 font-medium text-slate-700 dark:text-slate-300">4. Business Objects</span>
+              <span class="text-[10px] text-slate-400">7</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Relationship Filter Section -->
+        <div>
+          <span class="font-bold text-slate-700 dark:text-slate-300 mb-2 block flex items-center justify-between">
+            <span>Loại quan hệ (Relations)</span>
+            <span class="text-[10px] bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-slate-500">33 kết nối</span>
+          </span>
+          <div class="space-y-1.5">
+            <!-- Realization -->
+            <label class="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer">
+              <input type="checkbox" checked onchange="toggleRelationFilter('RealizationRelationship', this.checked)" class="rounded text-blue-500">
+              <svg width="24" height="12" class="shrink-0"><line x1="0" y1="6" x2="16" y2="6" stroke="#2563EB" stroke-dasharray="3,2" stroke-width="2"/><polygon points="16,2 23,6 16,10" fill="white" stroke="#2563EB" stroke-width="1.5"/></svg>
+              <span class="flex-1 text-slate-700 dark:text-slate-300">Realization</span>
+              <span class="text-[10px] text-slate-400">6</span>
+            </label>
+            <!-- Serving -->
+            <label class="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer">
+              <input type="checkbox" checked onchange="toggleRelationFilter('ServingRelationship', this.checked)" class="rounded text-emerald-500">
+              <svg width="24" height="12" class="shrink-0"><line x1="0" y1="6" x2="17" y2="6" stroke="#059669" stroke-width="2"/><polyline points="17,3 23,6 17,9" fill="none" stroke="#059669" stroke-width="1.8"/></svg>
+              <span class="flex-1 text-slate-700 dark:text-slate-300">Serving</span>
+              <span class="text-[10px] text-slate-400">6</span>
+            </label>
+            <!-- Triggering -->
+            <label class="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer">
+              <input type="checkbox" checked onchange="toggleRelationFilter('TriggeringRelationship', this.checked)" class="rounded text-red-500">
+              <svg width="24" height="12" class="shrink-0"><line x1="0" y1="6" x2="16" y2="6" stroke="#DC2626" stroke-width="2"/><polygon points="16,2 23,6 16,10" fill="#DC2626"/></svg>
+              <span class="flex-1 text-slate-700 dark:text-slate-300">Triggering</span>
+              <span class="text-[10px] text-slate-400">4</span>
+            </label>
+            <!-- Assignment -->
+            <label class="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer">
+              <input type="checkbox" checked onchange="toggleRelationFilter('AssignmentRelationship', this.checked)" class="rounded text-purple-500">
+              <svg width="24" height="12" class="shrink-0"><circle cx="4" cy="6" r="3" fill="#7C3AED"/><line x1="4" y1="6" x2="23" y2="6" stroke="#7C3AED" stroke-width="2"/></svg>
+              <span class="flex-1 text-slate-700 dark:text-slate-300">Assignment</span>
+              <span class="text-[10px] text-slate-400">2</span>
+            </label>
+            <!-- Access -->
+            <label class="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer">
+              <input type="checkbox" checked onchange="toggleRelationFilter('AccessRelationship', this.checked)" class="rounded text-amber-500">
+              <svg width="24" height="12" class="shrink-0"><line x1="0" y1="6" x2="17" y2="6" stroke="#D97706" stroke-dasharray="2,2" stroke-width="2"/><polyline points="17,3 23,6 17,9" fill="none" stroke="#D97706" stroke-width="1.8"/></svg>
+              <span class="flex-1 text-slate-700 dark:text-slate-300">Access (R / W / RW)</span>
+              <span class="text-[10px] text-slate-400">10</span>
+            </label>
+            <!-- Aggregation -->
+            <label class="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer">
+              <input type="checkbox" checked onchange="toggleRelationFilter('AggregationRelationship', this.checked)" class="rounded text-slate-500">
+              <svg width="24" height="12" class="shrink-0"><polygon points="2,6 7,2 12,6 7,10" fill="white" stroke="#475569" stroke-width="1.5"/><line x1="12" y1="6" x2="23" y2="6" stroke="#475569" stroke-width="2"/></svg>
+              <span class="flex-1 text-slate-700 dark:text-slate-300">Aggregation</span>
+              <span class="text-[10px] text-slate-400">3</span>
+            </label>
+            <!-- Composition -->
+            <label class="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer">
+              <input type="checkbox" checked onchange="toggleRelationFilter('CompositionRelationship', this.checked)" class="rounded text-slate-600">
+              <span class="w-5 text-center text-slate-600 dark:text-slate-400 font-bold">[]</span>
+              <span class="flex-1 text-slate-700 dark:text-slate-300">Composition (Lồng nhau)</span>
+              <span class="text-[10px] text-slate-400">2</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Triggering Conditions Legend -->
+        <div class="border-t border-slate-200 dark:border-slate-800 pt-3">
+          <span class="font-bold text-slate-700 dark:text-slate-300 mb-2 block">Nhãn điều kiện Triggering</span>
+          <div class="space-y-1.5 text-[11px]">
+            <div class="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-800 dark:text-emerald-300">
+              <div class="font-bold">Match Rate = 100%</div>
+              <div class="text-[10px] opacity-80">Identity Resolution &rarr; Data Harmonization</div>
+            </div>
+            <div class="p-2 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-800 dark:text-rose-300">
+              <div class="font-bold">Discrepancy / Match Rate &lt; 100%</div>
+              <div class="text-[10px] opacity-80">Identity Resolution &rarr; Data Exception Handling</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ArchiMate Symbol Legend -->
+        <div class="border-t border-slate-200 dark:border-slate-800 pt-3">
+          <span class="font-bold text-slate-700 dark:text-slate-300 mb-2 block">Ký hiệu ArchiMate (Archi Palette)</span>
+          <div class="grid grid-cols-1 gap-1.5 text-[11px]">
+            <div class="flex items-center gap-2 p-1.5 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
+              <svg width="20" height="20" class="shrink-0"><use href="#archi-icon-actor" width="20" height="20"/></svg>
+              <span class="font-medium">Business Actor (Tác nhân)</span>
+            </div>
+            <div class="flex items-center gap-2 p-1.5 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
+              <svg width="22" height="14" class="shrink-0"><use href="#archi-icon-service" width="22" height="14"/></svg>
+              <span class="font-medium">Business Service (Dịch vụ)</span>
+            </div>
+            <div class="flex items-center gap-2 p-1.5 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
+              <svg width="22" height="16" class="shrink-0"><use href="#archi-icon-process" width="22" height="16"/></svg>
+              <span class="font-medium">Business Process (Quy trình)</span>
+            </div>
+            <div class="flex items-center gap-2 p-1.5 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
+              <svg width="20" height="16" class="shrink-0"><use href="#archi-icon-object" width="20" height="16"/></svg>
+              <span class="font-medium">Business Object (Đối tượng DL)</span>
+            </div>
+            <div class="flex items-center gap-2 p-1.5 rounded-lg bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
+              <svg width="22" height="16" class="shrink-0"><use href="#archi-icon-grouping" width="22" height="16"/></svg>
+              <span class="font-medium">Grouping (Nhóm tầng kiến trúc)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Center Canvas / Views Container -->
+    <main class="flex-1 relative overflow-hidden bg-slate-100 dark:bg-slate-950 flex flex-col">
+
+      <!-- View 1: Interactive SVG Canvas -->
+      <div id="viewDiagram" class="w-full h-full relative overflow-hidden flex items-center justify-center">
+        <!-- Floating Canvas Toolbar -->
+        <div class="absolute bottom-5 left-6 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-xl shadow-lg p-1.5 flex items-center gap-1 z-10">
+          <button onclick="zoomIn()" title="Phóng to" class="w-8 h-8 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-200 transition">
+            <i class="fa-solid fa-plus text-xs"></i>
+          </button>
+          <button onclick="zoomOut()" title="Thu nhỏ" class="w-8 h-8 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-200 transition">
+            <i class="fa-solid fa-minus text-xs"></i>
+          </button>
+          <button onclick="resetZoom()" title="Khôi phục kích thước 100%" class="px-2 h-8 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-xs font-semibold text-slate-700 dark:text-slate-200 transition">
+            100%
+          </button>
+          <button onclick="fitView()" title="Thu phóng vừa khung nhìn" class="w-8 h-8 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-200 transition">
+            <i class="fa-solid fa-expand text-xs"></i>
+          </button>
+          <div class="w-px h-5 bg-slate-200 dark:bg-slate-800 my-1"></div>
+          <button onclick="toggleSidebar()" title="Đóng/Mở bộ lọc" class="w-8 h-8 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-200 transition">
+            <i class="fa-solid fa-table-columns text-xs"></i>
+          </button>
+        </div>
+
+        <!-- Help tooltip badge -->
+        <div class="absolute top-4 left-6 pointer-events-none bg-slate-900/60 dark:bg-slate-800/80 backdrop-blur-sm text-white px-3 py-1.5 rounded-lg text-xs flex items-center gap-2 border border-white/10 z-10">
+          <i class="fa-solid fa-hand-pointer text-amber-400"></i>
+          <span>Kéo chuột để di chuyển (Pan), cuộn để Zoom. Nhấp vào phần tử hoặc đường quan hệ để xem chi tiết.</span>
+        </div>
+
+        <!-- The Big Interactive SVG Area -->
+        <div id="svgContainer" class="w-full h-full cursor-grab active:cursor-grabbing overflow-hidden">
+          <svg id="archimateSvg" class="w-full h-full" viewBox="0 0 1560 1300" preserveAspectRatio="xMidYMid meet">
+            <defs>
+              <!-- Official Archi Palette Top-Right Symbols -->
+              <!-- 1. Business Actor: Stick figure (circular head, horizontal arms, vertical torso, inverted-V legs) -->
+              <symbol id="archi-icon-actor" viewBox="0 0 24 24">
+                <circle cx="12" cy="5.5" r="3.2" fill="#FEF9C3" stroke="#1E293B" stroke-width="1.8"/>
+                <line x1="12" y1="8.7" x2="12" y2="16.2" stroke="#1E293B" stroke-width="1.8" stroke-linecap="round"/>
+                <line x1="6.5" y1="11.8" x2="17.5" y2="11.8" stroke="#1E293B" stroke-width="1.8" stroke-linecap="round"/>
+                <polyline points="7.5,21.5 12,16.2 16.5,21.5" fill="none" stroke="#1E293B" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+              </symbol>
+
+              <!-- 2. Business Service: Stadium pill rounded on both ends -->
+              <symbol id="archi-icon-service" viewBox="0 0 26 16">
+                <rect x="1.5" y="2.5" width="23" height="11" rx="5.5" fill="#FEF08A" stroke="#1E293B" stroke-width="1.7"/>
+              </symbol>
+
+              <!-- 3. Business Process: Right-pointing hollow block arrow -->
+              <symbol id="archi-icon-process" viewBox="0 0 24 18">
+                <polygon points="1.5,5.5 13.5,5.5 13.5,2 22.5,9 13.5,16 13.5,12.5 1.5,12.5" fill="#FEF08A" stroke="#1E293B" stroke-width="1.6" stroke-linejoin="round"/>
+              </symbol>
+
+              <!-- 4. Business Object: Sharp-cornered rectangle with top header divider -->
+              <symbol id="archi-icon-object" viewBox="0 0 22 18">
+                <rect x="1.5" y="1.5" width="19" height="15" rx="0.5" fill="#FEF08A" stroke="#1E293B" stroke-width="1.6"/>
+                <line x1="1.5" y1="6" x2="20.5" y2="6" stroke="#1E293B" stroke-width="1.5"/>
+              </symbol>
+
+              <!-- 5. Grouping: Folder icon with top-left tab -->
+              <symbol id="archi-icon-grouping" viewBox="0 0 24 18">
+                <path d="M 1.5,4.5 L 1.5,2.5 L 9.5,2.5 L 11.2,4.5 L 22.5,4.5 L 22.5,16.5 L 1.5,16.5 Z" fill="#F8FAFC" stroke="#1E293B" stroke-width="1.5" stroke-linejoin="round"/>
+                <line x1="1.5" y1="4.5" x2="11.2" y2="4.5" stroke="#1E293B" stroke-width="1.2"/>
+              </symbol>
+
+              <!-- Relationship Arrowheads Markers -->
+              <!-- Realization: Hollow triangle -->
+              <marker id="marker-realization" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto">
+                <polygon points="1,1 13,7 1,13" fill="#FFFFFF" stroke="#2563EB" stroke-width="2"/>
+              </marker>
+              <!-- Serving: Open chevron -->
+              <marker id="marker-serving" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto">
+                <polyline points="2,2 13,7 2,12" fill="none" stroke="#059669" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </marker>
+              <!-- Triggering: Filled crimson triangle -->
+              <marker id="marker-triggering" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto">
+                <polygon points="2,1 13,7 2,13" fill="#DC2626"/>
+              </marker>
+              <!-- Access End (Write): Dotted open arrow at target -->
+              <marker id="marker-access" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto">
+                <polyline points="3,2 13,7 3,12" fill="none" stroke="#D97706" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </marker>
+              <!-- Access Start (Read): Dotted open arrow pointing to source -->
+              <marker id="marker-access-start" markerWidth="14" markerHeight="14" refX="1" refY="7" orient="auto">
+                <polyline points="11,2 1,7 11,12" fill="none" stroke="#D97706" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </marker>
+              <!-- Assignment Circle at Start -->
+              <marker id="marker-assignment" markerWidth="12" markerHeight="12" refX="6" refY="6" orient="auto">
+                <circle cx="6" cy="6" r="4.5" fill="#7C3AED"/>
+              </marker>
+              <!-- Assignment Arrow at End -->
+              <marker id="marker-assignment-end" markerWidth="14" markerHeight="14" refX="13" refY="7" orient="auto">
+                <polyline points="3,2 13,7 3,12" fill="none" stroke="#7C3AED" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>
+              </marker>
+              <!-- Aggregation: Hollow diamond at source -->
+              <marker id="marker-aggregation" markerWidth="18" markerHeight="14" refX="2" refY="7" orient="auto">
+                <polygon points="2,7 9,2 16,7 9,12" fill="#FFFFFF" stroke="#475569" stroke-width="2"/>
+              </marker>
+              
+              <!-- Subtle Dropshadow Filter -->
+              <filter id="shadow" x="-8%" y="-8%" width="120%" height="120%">
+                <feDropShadow dx="0" dy="3" stdDeviation="3" flood-opacity="0.08"/>
+              </filter>
+            </defs>
+
+            <!-- Transform Group for Pan & Zoom -->
+            <g id="viewportGroup" transform="translate(0, 0) scale(1)">
+              
+              <!-- LAYER 1: BUSINESS ACTORS & ROLES (id-5580e8eacbfc49b1b79e0c4fea3985d7) -->
+              <g id="group-actors" class="layer-group">
+                <rect x="60" y="35" width="1440" height="150" rx="14" class="fill-slate-50 dark:fill-slate-900/60 stroke-slate-300 dark:stroke-slate-700 stroke-1 stroke-dasharray-4"/>
+                <rect x="60" y="35" width="225" height="28" rx="6" class="fill-amber-500/15 dark:fill-amber-500/25"/>
+                <text x="75" y="53" class="text-xs font-bold fill-amber-700 dark:fill-amber-300 tracking-wide">
+                  <tspan font-weight="bold">BUSINESS ACTORS &amp; ROLES</tspan>
+                </text>
+                <use href="#archi-icon-grouping" x="1466" y="42" width="24" height="18"/>
+
+                <!-- 1. Academic Affairs Office (x=95..385, center=240) -->
+                <g id="node-id-7eae3e85fa064257b8605c91d73321b9" class="arch-node" onclick="selectNode('id-7eae3e85fa064257b8605c91d73321b9')" onmouseenter="highlightNode('id-7eae3e85fa064257b8605c91d73321b9')" onmouseleave="clearHighlight()">
+                  <rect x="95" y="80" width="290" height="75" rx="6" class="fill-amber-100 dark:fill-amber-950/80 stroke-amber-500 dark:stroke-amber-400 stroke-2" filter="url(#shadow)"/>
+                  <rect x="95" y="80" width="6" height="75" rx="2" class="fill-amber-500"/>
+                  <use href="#archi-icon-actor" x="355" y="87" width="22" height="22"/>
+                  <text x="113" y="114" class="text-sm font-bold fill-slate-900 dark:fill-white">Academic Affairs Office</text>
+                  <text x="113" y="132" class="text-[11px] fill-slate-500 dark:fill-slate-400">Phòng Đào tạo Đại học</text>
+                </g>
+
+                <!-- 2. Academic Data Steward (x=455..745, center=600) -->
+                <g id="node-id-7093bd8cf0604fcaa5186388d6883622" class="arch-node" onclick="selectNode('id-7093bd8cf0604fcaa5186388d6883622')" onmouseenter="highlightNode('id-7093bd8cf0604fcaa5186388d6883622')" onmouseleave="clearHighlight()">
+                  <rect x="455" y="80" width="290" height="75" rx="6" class="fill-amber-100 dark:fill-amber-950/80 stroke-amber-500 dark:stroke-amber-400 stroke-2" filter="url(#shadow)"/>
+                  <rect x="455" y="80" width="6" height="75" rx="2" class="fill-amber-500"/>
+                  <use href="#archi-icon-actor" x="715" y="87" width="22" height="22"/>
+                  <text x="473" y="114" class="text-sm font-bold fill-slate-900 dark:fill-white">Academic Data Steward</text>
+                  <text x="473" y="132" class="text-[11px] fill-slate-500 dark:fill-slate-400">Quản trị viên Dữ liệu Học thuật</text>
+                </g>
+
+                <!-- 3. Academic Advisor (x=815..1105, center=960) -->
+                <g id="node-id-43204553cc47402881995485530e0c1c" class="arch-node" onclick="selectNode('id-43204553cc47402881995485530e0c1c')" onmouseenter="highlightNode('id-43204553cc47402881995485530e0c1c')" onmouseleave="clearHighlight()">
+                  <rect x="815" y="80" width="290" height="75" rx="6" class="fill-amber-100 dark:fill-amber-950/80 stroke-amber-500 dark:stroke-amber-400 stroke-2" filter="url(#shadow)"/>
+                  <rect x="815" y="80" width="6" height="75" rx="2" class="fill-amber-500"/>
+                  <use href="#archi-icon-actor" x="1075" y="87" width="22" height="22"/>
+                  <text x="833" y="114" class="text-sm font-bold fill-slate-900 dark:fill-white">Academic Advisor</text>
+                  <text x="833" y="132" class="text-[11px] fill-slate-500 dark:fill-slate-400">Cố vấn Học tập / Giảng viên</text>
+                </g>
+
+                <!-- 4. Students (x=1175..1465, center=1320) -->
+                <g id="node-id-4d5679b43bce4a6dba6b39c756adab81" class="arch-node" onclick="selectNode('id-4d5679b43bce4a6dba6b39c756adab81')" onmouseenter="highlightNode('id-4d5679b43bce4a6dba6b39c756adab81')" onmouseleave="clearHighlight()">
+                  <rect x="1175" y="80" width="290" height="75" rx="6" class="fill-amber-100 dark:fill-amber-950/80 stroke-amber-500 dark:stroke-amber-400 stroke-2" filter="url(#shadow)"/>
+                  <rect x="1175" y="80" width="6" height="75" rx="2" class="fill-amber-500"/>
+                  <use href="#archi-icon-actor" x="1435" y="87" width="22" height="22"/>
+                  <text x="1193" y="114" class="text-sm font-bold fill-slate-900 dark:fill-white">Students</text>
+                  <text x="1193" y="132" class="text-[11px] fill-slate-500 dark:fill-slate-400">Sinh viên / Người học</text>
+                </g>
+              </g>
+
+              <!-- LAYER 2: BUSINESS SERVICES (id-f9c90df1dfe54e63a6d2dfaf2e89604a) -->
+              <g id="group-services" class="layer-group">
+                <rect x="60" y="235" width="1440" height="150" rx="14" class="fill-slate-50 dark:fill-slate-900/60 stroke-slate-300 dark:stroke-slate-700 stroke-1 stroke-dasharray-4"/>
+                <rect x="60" y="235" width="180" height="28" rx="6" class="fill-amber-500/15 dark:fill-amber-500/25"/>
+                <text x="75" y="253" class="text-xs font-bold fill-amber-700 dark:fill-amber-300 tracking-wide">
+                  <tspan font-weight="bold">BUSINESS SERVICES</tspan>
+                </text>
+                <use href="#archi-icon-grouping" x="1466" y="242" width="24" height="18"/>
+
+                <!-- 1. Student MDM Service (x=95..385, center=240) -->
+                <g id="node-id-7fb6a0ee438f48abadfbf1c3a0507837" class="arch-node" onclick="selectNode('id-7fb6a0ee438f48abadfbf1c3a0507837')" onmouseenter="highlightNode('id-7fb6a0ee438f48abadfbf1c3a0507837')" onmouseleave="clearHighlight()">
+                  <rect x="95" y="280" width="290" height="75" rx="14" class="fill-amber-200/90 dark:fill-amber-900/60 stroke-amber-600 dark:stroke-amber-400 stroke-2" filter="url(#shadow)"/>
+                  <use href="#archi-icon-service" x="350" y="288" width="26" height="16"/>
+                  <text x="113" y="316" class="text-sm font-bold fill-slate-900 dark:fill-white">Student MDM Service</text>
+                  <text x="113" y="334" class="text-[11px] fill-slate-600 dark:fill-slate-400">Dịch vụ Master Data Học viên</text>
+                </g>
+
+                <!-- 2. Data Reconciliation Service (x=455..745, center=600) -->
+                <g id="node-id-d7b4223591154774a7ae7cea58fbcd0c" class="arch-node" onclick="selectNode('id-d7b4223591154774a7ae7cea58fbcd0c')" onmouseenter="highlightNode('id-d7b4223591154774a7ae7cea58fbcd0c')" onmouseleave="clearHighlight()">
+                  <rect x="455" y="280" width="290" height="75" rx="14" class="fill-amber-200/90 dark:fill-amber-900/60 stroke-amber-600 dark:stroke-amber-400 stroke-2" filter="url(#shadow)"/>
+                  <use href="#archi-icon-service" x="710" y="288" width="26" height="16"/>
+                  <text x="473" y="316" class="text-sm font-bold fill-slate-900 dark:fill-white">Data Reconciliation Service</text>
+                  <text x="473" y="334" class="text-[11px] fill-slate-600 dark:fill-slate-400">Dịch vụ Đối soát Dữ liệu</text>
+                </g>
+
+                <!-- 3. Academic Health Monitoring Service (x=815..1105, center=960) -->
+                <g id="node-id-55ea02c260604685820f3db71871805c" class="arch-node" onclick="selectNode('id-55ea02c260604685820f3db71871805c')" onmouseenter="highlightNode('id-55ea02c260604685820f3db71871805c')" onmouseleave="clearHighlight()">
+                  <rect x="815" y="280" width="290" height="75" rx="14" class="fill-amber-200/90 dark:fill-amber-900/60 stroke-amber-600 dark:stroke-amber-400 stroke-2" filter="url(#shadow)"/>
+                  <use href="#archi-icon-service" x="1070" y="288" width="26" height="16"/>
+                  <text x="830" y="316" class="text-[13px] font-bold fill-slate-900 dark:fill-white">Academic Health Monitoring Service</text>
+                  <text x="830" y="334" class="text-[11px] fill-slate-600 dark:fill-slate-400">Dịch vụ Giám sát Sức khỏe Học vụ</text>
+                </g>
+
+                <!-- 4. Discrepancy Dispute Service (x=1175..1465, center=1320) -->
+                <g id="node-id-009b42323a1b4e3193fc8f7128db3b95" class="arch-node" onclick="selectNode('id-009b42323a1b4e3193fc8f7128db3b95')" onmouseenter="highlightNode('id-009b42323a1b4e3193fc8f7128db3b95')" onmouseleave="clearHighlight()">
+                  <rect x="1175" y="280" width="290" height="75" rx="14" class="fill-amber-200/90 dark:fill-amber-900/60 stroke-amber-600 dark:stroke-amber-400 stroke-2" filter="url(#shadow)"/>
+                  <use href="#archi-icon-service" x="1430" y="288" width="26" height="16"/>
+                  <text x="1193" y="316" class="text-sm font-bold fill-slate-900 dark:fill-white">Discrepancy Dispute Service</text>
+                  <text x="1193" y="334" class="text-[11px] fill-slate-600 dark:fill-slate-400">Dịch vụ Khiếu nại Sai lệch</text>
+                </g>
+              </g>
+
+              <!-- LAYER 3: BUSINESS PROCESSES & FUNCTIONS (id-5c6eb37b6d874f65acc8ccc24bcc73cb) -->
+              <g id="group-processes" class="layer-group">
+                <rect x="60" y="435" width="1440" height="445" rx="14" class="fill-slate-50 dark:fill-slate-900/60 stroke-slate-300 dark:stroke-slate-700 stroke-1 stroke-dasharray-4"/>
+                <rect x="60" y="435" width="280" height="28" rx="6" class="fill-amber-500/15 dark:fill-amber-500/25"/>
+                <text x="75" y="453" class="text-xs font-bold fill-amber-700 dark:fill-amber-300 tracking-wide">
+                  <tspan font-weight="bold">BUSINESS PROCESSES &amp; FUNCTIONS</tspan>
+                </text>
+                <use href="#archi-icon-grouping" x="1466" y="442" width="24" height="18"/>
+
+                <!-- 1. Multi-source Ingestion Process (x=95..395, y=485..557) -->
+                <g id="node-id-dd2b87f6302740aa9fcd320e71293f30" class="arch-node" onclick="selectNode('id-dd2b87f6302740aa9fcd320e71293f30')" onmouseenter="highlightNode('id-dd2b87f6302740aa9fcd320e71293f30')" onmouseleave="clearHighlight()">
+                  <rect x="95" y="485" width="300" height="72" rx="8" class="fill-yellow-200/95 dark:fill-yellow-950/80 stroke-yellow-500 dark:stroke-yellow-400 stroke-2" filter="url(#shadow)"/>
+                  <use href="#archi-icon-process" x="363" y="492" width="24" height="18"/>
+                  <text x="113" y="519" class="text-sm font-bold fill-slate-900 dark:fill-white">Multi-source Ingestion Process</text>
+                  <text x="113" y="537" class="text-[11px] fill-slate-600 dark:fill-slate-400">Thu nạp đa nguồn (SIS, Tuyển sinh, LMS)</text>
+                </g>
+
+                <!-- 2. Identity Resolution Process (Composite Box: x=95..395, y=598..852) -->
+                <g id="node-id-d57b93a28fa54cf1a91ead614cc4a607" class="arch-node" onclick="selectNode('id-d57b93a28fa54cf1a91ead614cc4a607')" onmouseenter="highlightNode('id-d57b93a28fa54cf1a91ead614cc4a607')" onmouseleave="clearHighlight()">
+                  <rect x="95" y="598" width="300" height="254" rx="10" class="fill-amber-50/80 dark:fill-amber-950/30 stroke-amber-500 dark:stroke-amber-400 stroke-2 stroke-dasharray-4"/>
+                  <rect x="95" y="598" width="220" height="24" rx="4" class="fill-amber-500/20"/>
+                  <use href="#archi-icon-process" x="363" y="603" width="24" height="18"/>
+                  <text x="105" y="614" class="text-xs font-bold fill-amber-900 dark:fill-amber-200">Identity Resolution Process</text>
+                  <text x="105" y="631" class="text-[10px] fill-slate-500 dark:fill-slate-400">Tiến trình Giải quyết &amp; Khớp Danh tính</text>
+
+                  <!-- 2.1 Rule-based Identity Matching Process (Inner Sub-Process 1) -->
+                  <g id="node-id-07c8ccf60d544be985dda208bbf5d959" class="arch-node" onclick="event.stopPropagation(); selectNode('id-07c8ccf60d544be985dda208bbf5d959')" onmouseenter="event.stopPropagation(); highlightNode('id-07c8ccf60d544be985dda208bbf5d959')" onmouseleave="clearHighlight()">
+                    <rect x="113" y="650" width="264" height="74" rx="8" class="fill-yellow-200/95 dark:fill-yellow-900/60 stroke-yellow-500 stroke-2" filter="url(#shadow)"/>
+                    <use href="#archi-icon-process" x="347" y="656" width="22" height="16"/>
+                    <text x="125" y="684" class="text-xs font-bold fill-slate-900 dark:fill-white">Rule-based Identity Matching</text>
+                    <text x="125" y="702" class="text-[10px] fill-slate-600 dark:fill-slate-400">Khớp định danh theo luật xác định</text>
+                  </g>
+
+                  <!-- 2.2 Registry Update Process (Inner Sub-Process 2) -->
+                  <g id="node-id-5b4de8f4db39465880db047501e8ea3f" class="arch-node" onclick="event.stopPropagation(); selectNode('id-5b4de8f4db39465880db047501e8ea3f')" onmouseenter="event.stopPropagation(); highlightNode('id-5b4de8f4db39465880db047501e8ea3f')" onmouseleave="clearHighlight()">
+                    <rect x="113" y="746" width="264" height="84" rx="8" class="fill-yellow-200/95 dark:fill-yellow-900/60 stroke-yellow-500 stroke-2" filter="url(#shadow)"/>
+                    <use href="#archi-icon-process" x="347" y="752" width="22" height="16"/>
+                    <text x="125" y="782" class="text-xs font-bold fill-slate-900 dark:fill-white">Registry Update Process</text>
+                    <text x="125" y="800" class="text-[10px] fill-slate-600 dark:fill-slate-400">Cập nhật bảng ánh xạ Registry</text>
+                  </g>
+                </g>
+
+                <!-- 3. Data Harmonization Process (x=665..955, y=515..590) -->
+                <g id="node-id-5c5f12f821494b7ab5d72bdb7e19af8e" class="arch-node" onclick="selectNode('id-5c5f12f821494b7ab5d72bdb7e19af8e')" onmouseenter="highlightNode('id-5c5f12f821494b7ab5d72bdb7e19af8e')" onmouseleave="clearHighlight()">
+                  <rect x="665" y="515" width="290" height="75" rx="8" class="fill-yellow-200/95 dark:fill-yellow-950/80 stroke-yellow-500 dark:stroke-yellow-400 stroke-2" filter="url(#shadow)"/>
+                  <use href="#archi-icon-process" x="923" y="522" width="24" height="18"/>
+                  <text x="683" y="549" class="text-sm font-bold fill-slate-900 dark:fill-white">Data Harmonization Process</text>
+                  <text x="683" y="567" class="text-[11px] fill-slate-600 dark:fill-slate-400">Hài hòa &amp; Hợp nhất Bản ghi Vàng</text>
+                </g>
+
+                <!-- 4. Data Exception Handling Process (x=665..955, y=735..810) -->
+                <g id="node-id-f0ade664d2b24e66901b69932492e396" class="arch-node" onclick="selectNode('id-f0ade664d2b24e66901b69932492e396')" onmouseenter="highlightNode('id-f0ade664d2b24e66901b69932492e396')" onmouseleave="clearHighlight()">
+                  <rect x="665" y="735" width="290" height="75" rx="8" class="fill-yellow-200/95 dark:fill-yellow-950/80 stroke-yellow-500 dark:stroke-yellow-400 stroke-2" filter="url(#shadow)"/>
+                  <use href="#archi-icon-process" x="923" y="742" width="24" height="18"/>
+                  <text x="683" y="769" class="text-sm font-bold fill-slate-900 dark:fill-white">Data Exception Handling Process</text>
+                  <text x="683" y="787" class="text-[11px] fill-slate-600 dark:fill-slate-400">Xử lý ngoại lệ &amp; Tạo phiếu đối soát</text>
+                </g>
+
+                <!-- 5. Risk Evaluation & Approval Process (x=1145..1455, y=515..590) -->
+                <g id="node-id-0d4a85baa20f43fcb8f982967b2d6e29" class="arch-node" onclick="selectNode('id-0d4a85baa20f43fcb8f982967b2d6e29')" onmouseenter="highlightNode('id-0d4a85baa20f43fcb8f982967b2d6e29')" onmouseleave="clearHighlight()">
+                  <rect x="1145" y="515" width="310" height="75" rx="8" class="fill-yellow-200/95 dark:fill-yellow-950/80 stroke-yellow-500 dark:stroke-yellow-400 stroke-2" filter="url(#shadow)"/>
+                  <use href="#archi-icon-process" x="1423" y="522" width="24" height="18"/>
+                  <text x="1163" y="549" class="text-sm font-bold fill-slate-900 dark:fill-white">Risk Evaluation &amp; Approval</text>
+                  <text x="1163" y="567" class="text-[11px] fill-slate-600 dark:fill-slate-400">Đánh giá rủi ro &amp; Phê duyệt cảnh báo</text>
+                </g>
+              </g>
+
+              <!-- LAYER 4: BUSINESS OBJECTS (id-ddfc34d60624485a99166c6660215b4b) -->
+              <g id="group-objects" class="layer-group">
+                <rect x="60" y="925" width="1440" height="335" rx="14" class="fill-slate-50 dark:fill-slate-900/60 stroke-slate-300 dark:stroke-slate-700 stroke-1 stroke-dasharray-4"/>
+                <rect x="60" y="925" width="200" height="28" rx="6" class="fill-amber-500/15 dark:fill-amber-500/25"/>
+                <text x="75" y="943" class="text-xs font-bold fill-amber-700 dark:fill-amber-300 tracking-wide">
+                  <tspan font-weight="bold">BUSINESS OBJECTS</tspan>
+                </text>
+                <use href="#archi-icon-grouping" x="1466" y="932" width="24" height="18"/>
+
+                <!-- Left Column: 3 Source Records stacked cleanly (x=95..365) -->
+                <!-- 1. SIS Academic Record (y=975..1043) -->
+                <g id="node-id-9d0f2b147caf4a2e9a7b0e47c66bba39" class="arch-node" onclick="selectNode('id-9d0f2b147caf4a2e9a7b0e47c66bba39')" onmouseenter="highlightNode('id-9d0f2b147caf4a2e9a7b0e47c66bba39')" onmouseleave="clearHighlight()">
+                  <rect x="95" y="975" width="270" height="68" rx="2" class="fill-amber-50/95 dark:fill-amber-950/60 stroke-amber-500 stroke-1.5" filter="url(#shadow)"/>
+                  <use href="#archi-icon-object" x="335" y="982" width="22" height="18"/>
+                  <text x="113" y="1006" class="text-xs font-bold fill-slate-900 dark:fill-white">SIS Academic Record</text>
+                  <text x="113" y="1024" class="text-[10px] fill-slate-500 dark:fill-slate-400">Hồ sơ quản lý đào tạo SIS</text>
+                </g>
+
+                <!-- 2. Admissions Record (y=1068..1136) -->
+                <g id="node-id-9bc7fbce33ba42b3af716ec487436aa2" class="arch-node" onclick="selectNode('id-9bc7fbce33ba42b3af716ec487436aa2')" onmouseenter="highlightNode('id-9bc7fbce33ba42b3af716ec487436aa2')" onmouseleave="clearHighlight()">
+                  <rect x="95" y="1068" width="270" height="68" rx="2" class="fill-amber-50/95 dark:fill-amber-950/60 stroke-amber-500 stroke-1.5" filter="url(#shadow)"/>
+                  <use href="#archi-icon-object" x="335" y="1075" width="22" height="18"/>
+                  <text x="113" y="1099" class="text-xs font-bold fill-slate-900 dark:fill-white">Admissions Record</text>
+                  <text x="113" y="1117" class="text-[10px] fill-slate-500 dark:fill-slate-400">Hồ sơ tuyển sinh đầu vào</text>
+                </g>
+
+                <!-- 3. Fragmented LMS Data (y=1161..1229) -->
+                <g id="node-id-1e8af2168f5a486fad7e406c0c0569d2" class="arch-node" onclick="selectNode('id-1e8af2168f5a486fad7e406c0c0569d2')" onmouseenter="highlightNode('id-1e8af2168f5a486fad7e406c0c0569d2')" onmouseleave="clearHighlight()">
+                  <rect x="95" y="1161" width="270" height="68" rx="2" class="fill-amber-50/95 dark:fill-amber-950/60 stroke-amber-500 stroke-1.5" filter="url(#shadow)"/>
+                  <use href="#archi-icon-object" x="335" y="1168" width="22" height="18"/>
+                  <text x="113" y="1192" class="text-xs font-bold fill-slate-900 dark:fill-white">Fragmented LMS Data</text>
+                  <text x="113" y="1210" class="text-[10px] fill-slate-500 dark:fill-slate-400">Dữ liệu phân mảnh từ LMS</text>
+                </g>
+
+                <!-- Center-Left Column: Student Golden Record & Identity Mapping Registry -->
+                <!-- 4. Student Golden Record / Student 360 (x=470..770, y=975..1055) -->
+                <g id="node-id-786f5a654ed549dca138f3e6e781e5e8" class="arch-node" onclick="selectNode('id-786f5a654ed549dca138f3e6e781e5e8')" onmouseenter="highlightNode('id-786f5a654ed549dca138f3e6e781e5e8')" onmouseleave="clearHighlight()">
+                  <rect x="470" y="975" width="300" height="80" rx="2" class="fill-amber-200/95 dark:fill-amber-900/60 stroke-amber-600 dark:stroke-amber-400 stroke-2" filter="url(#shadow)"/>
+                  <use href="#archi-icon-object" x="740" y="982" width="22" height="18"/>
+                  <text x="488" y="1010" class="text-xs font-bold fill-slate-900 dark:fill-white">Student Golden Record / Student 360</text>
+                  <text x="488" y="1029" class="text-[10px] fill-slate-600 dark:fill-slate-400">Hồ sơ vàng sinh viên hợp nhất</text>
+                </g>
+
+                <!-- 5. Identity Mapping Registry (x=470..770, y=1145..1225) -->
+                <g id="node-id-c4efa3ced13b4d15a3aebd973022aff8" class="arch-node" onclick="selectNode('id-c4efa3ced13b4d15a3aebd973022aff8')" onmouseenter="highlightNode('id-c4efa3ced13b4d15a3aebd973022aff8')" onmouseleave="clearHighlight()">
+                  <rect x="470" y="1145" width="300" height="80" rx="2" class="fill-amber-100/95 dark:fill-amber-950/70 stroke-amber-500 stroke-1.5" filter="url(#shadow)"/>
+                  <use href="#archi-icon-object" x="740" y="1152" width="22" height="18"/>
+                  <text x="488" y="1180" class="text-xs font-bold fill-slate-900 dark:fill-white">Identity Mapping Registry</text>
+                  <text x="488" y="1199" class="text-[10px] fill-slate-500 dark:fill-slate-400">Sổ bộ ánh xạ định danh toàn trường</text>
+                </g>
+
+                <!-- Center-Right Column: Academic Warning Notice (x=865..1145, y=975..1055) -->
+                <g id="node-id-dc88bd4f8d92418fb940c6b89a554d05" class="arch-node" onclick="selectNode('id-dc88bd4f8d92418fb940c6b89a554d05')" onmouseenter="highlightNode('id-dc88bd4f8d92418fb940c6b89a554d05')" onmouseleave="clearHighlight()">
+                  <rect x="865" y="975" width="280" height="80" rx="2" class="fill-amber-100/95 dark:fill-amber-950/70 stroke-amber-500 stroke-1.5" filter="url(#shadow)"/>
+                  <use href="#archi-icon-object" x="1115" y="982" width="22" height="18"/>
+                  <text x="883" y="1010" class="text-xs font-bold fill-slate-900 dark:fill-white">Academic Warning Notice</text>
+                  <text x="883" y="1029" class="text-[10px] fill-slate-500 dark:fill-slate-400">Thông báo cảnh báo học vụ</text>
+                </g>
+
+                <!-- Right Column: Reconciliation Ticket (x=1205..1465, y=975..1055) -->
+                <g id="node-id-6081f53f480d482a9ea6d4116031d16c" class="arch-node" onclick="selectNode('id-6081f53f480d482a9ea6d4116031d16c')" onmouseenter="highlightNode('id-6081f53f480d482a9ea6d4116031d16c')" onmouseleave="clearHighlight()">
+                  <rect x="1205" y="975" width="260" height="80" rx="2" class="fill-amber-100/95 dark:fill-amber-950/70 stroke-amber-500 stroke-1.5" filter="url(#shadow)"/>
+                  <use href="#archi-icon-object" x="1435" y="982" width="22" height="18"/>
+                  <text x="1223" y="1010" class="text-xs font-bold fill-slate-900 dark:fill-white">Reconciliation Ticket</text>
+                  <text x="1223" y="1029" class="text-[10px] fill-slate-500 dark:fill-slate-400">Phiếu đối soát dữ liệu</text>
+                </g>
+              </g>
+
+              <!-- RELATIONSHIPS SVG PATHS (33 EXACT RELATIONS FROM UPDATED XML) -->
+              <g id="edgesGroup">
+
+                <!-- === 1. TRIGGERING RELATIONSHIPS (4) === -->
+                <!-- Multi-source Ingestion -> Identity Resolution (id-ead653d1d5084f839379e0d171cad782) -->
+                <path id="edge-id-ead653d1d5084f839379e0d171cad782" d="M 245 557 L 245 598" 
+                  class="arch-edge stroke-red-600 dark:stroke-red-400" stroke-width="2.5" fill="none" marker-end="url(#marker-triggering)"
+                  onclick="selectRelation('id-ead653d1d5084f839379e0d171cad782')"
+                  data-source="id-dd2b87f6302740aa9fcd320e71293f30" data-target="id-d57b93a28fa54cf1a91ead614cc4a607" data-type="TriggeringRelationship"/>
+
+                <!-- Identity Resolution -> Data Harmonization (id-dc72b8f97fa041b6a691b8b304823ed6) [Label: Match Rate = 100%] -->
+                <path id="edge-id-dc72b8f97fa041b6a691b8b304823ed6" d="M 395 630 C 485 630, 560 552, 665 552" 
+                  class="arch-edge stroke-red-600 dark:stroke-red-400" stroke-width="2.6" fill="none" marker-end="url(#marker-triggering)"
+                  onclick="selectRelation('id-dc72b8f97fa041b6a691b8b304823ed6')"
+                  data-source="id-d57b93a28fa54cf1a91ead614cc4a607" data-target="id-5c5f12f821494b7ab5d72bdb7e19af8e" data-type="TriggeringRelationship"/>
+
+                <!-- Identity Resolution -> Data Exception Handling (id-14fcea8810604516a810255c5563e1af) [Label: Discrepancy / Match Rate < 100%] -->
+                <path id="edge-id-14fcea8810604516a810255c5563e1af" d="M 395 772 L 665 772" 
+                  class="arch-edge stroke-red-600 dark:stroke-red-400" stroke-width="2.6" fill="none" marker-end="url(#marker-triggering)"
+                  onclick="selectRelation('id-14fcea8810604516a810255c5563e1af')"
+                  data-source="id-d57b93a28fa54cf1a91ead614cc4a607" data-target="id-f0ade664d2b24e66901b69932492e396" data-type="TriggeringRelationship"/>
+
+                <!-- Data Harmonization -> Risk Evaluation & Approval (id-42d33adae0094c328ed284a588acd44b) -->
+                <path id="edge-id-42d33adae0094c328ed284a588acd44b" d="M 955 552 L 1145 552" 
+                  class="arch-edge stroke-red-600 dark:stroke-red-400" stroke-width="2.5" fill="none" marker-end="url(#marker-triggering)"
+                  onclick="selectRelation('id-42d33adae0094c328ed284a588acd44b')"
+                  data-source="id-5c5f12f821494b7ab5d72bdb7e19af8e" data-target="id-0d4a85baa20f43fcb8f982967b2d6e29" data-type="TriggeringRelationship"/>
+
+                <!-- === 2. REALIZATION RELATIONSHIPS (6) === -->
+                <!-- Multi-source Ingestion -> Student MDM Service (id-bda0bae67d2a4dc688998b889ee43068) -->
+                <path id="edge-id-bda0bae67d2a4dc688998b889ee43068" d="M 240 485 L 240 355" 
+                  class="arch-edge stroke-blue-600 dark:stroke-blue-400" stroke-dasharray="6,4" stroke-width="2.2" fill="none" marker-end="url(#marker-realization)"
+                  onclick="selectRelation('id-bda0bae67d2a4dc688998b889ee43068')"
+                  data-source="id-dd2b87f6302740aa9fcd320e71293f30" data-target="id-7fb6a0ee438f48abadfbf1c3a0507837" data-type="RealizationRelationship"/>
+
+                <!-- Identity Resolution -> Student MDM Service (id-e205a30bb1624188a8d991aea3f41dd0) -->
+                <path id="edge-id-e205a30bb1624188a8d991aea3f41dd0" d="M 125 598 C 72 520, 72 420, 165 355" 
+                  class="arch-edge stroke-blue-600 dark:stroke-blue-400" stroke-dasharray="6,4" stroke-width="2.2" fill="none" marker-end="url(#marker-realization)"
+                  onclick="selectRelation('id-e205a30bb1624188a8d991aea3f41dd0')"
+                  data-source="id-d57b93a28fa54cf1a91ead614cc4a607" data-target="id-7fb6a0ee438f48abadfbf1c3a0507837" data-type="RealizationRelationship"/>
+
+                <!-- Data Harmonization -> Student MDM Service (id-929392d220e84067bd514ad4fe1298c1) -->
+                <path id="edge-id-929392d220e84067bd514ad4fe1298c1" d="M 730 515 C 620 420, 410 420, 320 355" 
+                  class="arch-edge stroke-blue-600 dark:stroke-blue-400" stroke-dasharray="6,4" stroke-width="2.2" fill="none" marker-end="url(#marker-realization)"
+                  onclick="selectRelation('id-929392d220e84067bd514ad4fe1298c1')"
+                  data-source="id-5c5f12f821494b7ab5d72bdb7e19af8e" data-target="id-7fb6a0ee438f48abadfbf1c3a0507837" data-type="RealizationRelationship"/>
+
+                <!-- Data Exception Handling -> Data Reconciliation Service (id-46336887360b4ae3af33f7f4dfcfa6c2) -->
+                <path id="edge-id-46336887360b4ae3af33f7f4dfcfa6c2" d="M 740 735 C 620 620, 600 470, 600 355" 
+                  class="arch-edge stroke-blue-600 dark:stroke-blue-400" stroke-dasharray="6,4" stroke-width="2.2" fill="none" marker-end="url(#marker-realization)"
+                  onclick="selectRelation('id-46336887360b4ae3af33f7f4dfcfa6c2')"
+                  data-source="id-f0ade664d2b24e66901b69932492e396" data-target="id-d7b4223591154774a7ae7cea58fbcd0c" data-type="RealizationRelationship"/>
+
+                <!-- Data Exception Handling -> Discrepancy Dispute Service (id-5eeed1a3e0ee4502bc47731f5ecb3d40) -->
+                <path id="edge-id-5eeed1a3e0ee4502bc47731f5ecb3d40" d="M 920 735 C 1030 620, 1320 480, 1320 355" 
+                  class="arch-edge stroke-blue-600 dark:stroke-blue-400" stroke-dasharray="6,4" stroke-width="2.2" fill="none" marker-end="url(#marker-realization)"
+                  onclick="selectRelation('id-5eeed1a3e0ee4502bc47731f5ecb3d40')"
+                  data-source="id-f0ade664d2b24e66901b69932492e396" data-target="id-009b42323a1b4e3193fc8f7128db3b95" data-type="RealizationRelationship"/>
+
+                <!-- Risk Evaluation & Approval -> Academic Health Monitoring Service (id-63a18c48c3754af1bdd5dd71b2ef2aa3) -->
+                <path id="edge-id-63a18c48c3754af1bdd5dd71b2ef2aa3" d="M 1220 515 C 1150 430, 990 430, 990 355" 
+                  class="arch-edge stroke-blue-600 dark:stroke-blue-400" stroke-dasharray="6,4" stroke-width="2.2" fill="none" marker-end="url(#marker-realization)"
+                  onclick="selectRelation('id-63a18c48c3754af1bdd5dd71b2ef2aa3')"
+                  data-source="id-0d4a85baa20f43fcb8f982967b2d6e29" data-target="id-55ea02c260604685820f3db71871805c" data-type="RealizationRelationship"/>
+
+                <!-- === 3. SERVING RELATIONSHIPS (6) === -->
+                <!-- Student MDM Service -> Academic Affairs Office (id-ff896a9f5a9e4e858e75e01602d063f3) -->
+                <path id="edge-id-ff896a9f5a9e4e858e75e01602d063f3" d="M 220 280 L 220 155" 
+                  class="arch-edge stroke-emerald-600 dark:stroke-emerald-400" stroke-width="2.2" fill="none" marker-end="url(#marker-serving)"
+                  onclick="selectRelation('id-ff896a9f5a9e4e858e75e01602d063f3')"
+                  data-source="id-7fb6a0ee438f48abadfbf1c3a0507837" data-target="id-7eae3e85fa064257b8605c91d73321b9" data-type="ServingRelationship"/>
+
+                <!-- Student MDM Service -> Students (id-685ca840552143eaa46b5a8394cb7d78) -->
+                <path id="edge-id-685ca840552143eaa46b5a8394cb7d78" d="M 330 280 C 440 190, 1140 220, 1250 155" 
+                  class="arch-edge stroke-emerald-600 dark:stroke-emerald-400" stroke-width="2.2" fill="none" marker-end="url(#marker-serving)"
+                  onclick="selectRelation('id-685ca840552143eaa46b5a8394cb7d78')"
+                  data-source="id-7fb6a0ee438f48abadfbf1c3a0507837" data-target="id-4d5679b43bce4a6dba6b39c756adab81" data-type="ServingRelationship"/>
+
+                <!-- Data Reconciliation Service -> Academic Data Steward (id-32baa736f8f4488f8eb0679493422d38) -->
+                <path id="edge-id-32baa736f8f4488f8eb0679493422d38" d="M 580 280 L 580 155" 
+                  class="arch-edge stroke-emerald-600 dark:stroke-emerald-400" stroke-width="2.2" fill="none" marker-end="url(#marker-serving)"
+                  onclick="selectRelation('id-32baa736f8f4488f8eb0679493422d38')"
+                  data-source="id-d7b4223591154774a7ae7cea58fbcd0c" data-target="id-7093bd8cf0604fcaa5186388d6883622" data-type="ServingRelationship"/>
+
+                <!-- Academic Health Monitoring Service -> Academic Affairs Office (id-acff1ba34807457d816c957d3a54bad0) -->
+                <path id="edge-id-acff1ba34807457d816c957d3a54bad0" d="M 880 280 C 760 190, 390 220, 290 155" 
+                  class="arch-edge stroke-emerald-600 dark:stroke-emerald-400" stroke-width="2.2" fill="none" marker-end="url(#marker-serving)"
+                  onclick="selectRelation('id-acff1ba34807457d816c957d3a54bad0')"
+                  data-source="id-55ea02c260604685820f3db71871805c" data-target="id-7eae3e85fa064257b8605c91d73321b9" data-type="ServingRelationship"/>
+
+                <!-- Academic Health Monitoring Service -> Academic Advisor (id-081ab6d57ce449ab8442f62347404b4c) -->
+                <path id="edge-id-081ab6d57ce449ab8442f62347404b4c" d="M 960 280 L 960 155" 
+                  class="arch-edge stroke-emerald-600 dark:stroke-emerald-400" stroke-width="2.2" fill="none" marker-end="url(#marker-serving)"
+                  onclick="selectRelation('id-081ab6d57ce449ab8442f62347404b4c')"
+                  data-source="id-55ea02c260604685820f3db71871805c" data-target="id-43204553cc47402881995485530e0c1c" data-type="ServingRelationship"/>
+
+                <!-- Discrepancy Dispute Service -> Students (id-27bac1c486ce4e6b947fe66561155d85) -->
+                <path id="edge-id-27bac1c486ce4e6b947fe66561155d85" d="M 1340 280 L 1340 155" 
+                  class="arch-edge stroke-emerald-600 dark:stroke-emerald-400" stroke-width="2.2" fill="none" marker-end="url(#marker-serving)"
+                  onclick="selectRelation('id-27bac1c486ce4e6b947fe66561155d85')"
+                  data-source="id-009b42323a1b4e3193fc8f7128db3b95" data-target="id-4d5679b43bce4a6dba6b39c756adab81" data-type="ServingRelationship"/>
+
+                <!-- === 4. ASSIGNMENT RELATIONSHIPS (2) === -->
+                <!-- Academic Data Steward -> Data Exception Handling Process (id-ebacf3fead364e489b9bbc5774475309) -->
+                <path id="edge-id-ebacf3fead364e489b9bbc5774475309" d="M 660 155 C 660 320, 795 450, 795 735" 
+                  class="arch-edge stroke-purple-600 dark:stroke-purple-400" stroke-width="2.2" fill="none" marker-start="url(#marker-assignment)" marker-end="url(#marker-assignment-end)"
+                  onclick="selectRelation('id-ebacf3fead364e489b9bbc5774475309')"
+                  data-source="id-7093bd8cf0604fcaa5186388d6883622" data-target="id-f0ade664d2b24e66901b69932492e396" data-type="AssignmentRelationship"/>
+
+                <!-- Academic Advisor -> Risk Evaluation & Approval Process (id-8a9f778acdc0495aac3932c9edea6c55) -->
+                <path id="edge-id-8a9f778acdc0495aac3932c9edea6c55" d="M 1050 155 C 1090 310, 1285 380, 1285 515" 
+                  class="arch-edge stroke-purple-600 dark:stroke-purple-400" stroke-width="2.2" fill="none" marker-start="url(#marker-assignment)" marker-end="url(#marker-assignment-end)"
+                  onclick="selectRelation('id-8a9f778acdc0495aac3932c9edea6c55')"
+                  data-source="id-43204553cc47402881995485530e0c1c" data-target="id-0d4a85baa20f43fcb8f982967b2d6e29" data-type="AssignmentRelationship"/>
+
+                <!-- === 5. ACCESS RELATIONSHIPS (10) === -->
+                <!-- Multi-source Ingestion <-> SIS Academic Record (id-85abed91c6e642ad8fbcd3b8e2f00959, accessType="1": Read) -->
+                <path id="edge-id-85abed91c6e642ad8fbcd3b8e2f00959" d="M 95 535 C 62 560, 62 1009, 95 1009" 
+                  class="arch-edge stroke-amber-600 dark:stroke-amber-400" stroke-dasharray="4,4" stroke-width="2" fill="none" marker-start="url(#marker-access-start)"
+                  onclick="selectRelation('id-85abed91c6e642ad8fbcd3b8e2f00959')"
+                  data-source="id-dd2b87f6302740aa9fcd320e71293f30" data-target="id-9d0f2b147caf4a2e9a7b0e47c66bba39" data-type="AccessRelationship"/>
+
+                <!-- Multi-source Ingestion <-> Admissions Record (id-091b80134620480d95eead474caaf58f, accessType="1": Read) -->
+                <path id="edge-id-091b80134620480d95eead474caaf58f" d="M 95 520 C 52 550, 52 1102, 95 1102" 
+                  class="arch-edge stroke-amber-600 dark:stroke-amber-400" stroke-dasharray="4,4" stroke-width="2" fill="none" marker-start="url(#marker-access-start)"
+                  onclick="selectRelation('id-091b80134620480d95eead474caaf58f')"
+                  data-source="id-dd2b87f6302740aa9fcd320e71293f30" data-target="id-9bc7fbce33ba42b3af716ec487436aa2" data-type="AccessRelationship"/>
+
+                <!-- Multi-source Ingestion <-> Fragmented LMS Data (id-e74116d7a03243dfbb2bc9235baf7970, accessType="1": Read) -->
+                <path id="edge-id-e74116d7a03243dfbb2bc9235baf7970" d="M 95 505 C 42 540, 42 1195, 95 1195" 
+                  class="arch-edge stroke-amber-600 dark:stroke-amber-400" stroke-dasharray="4,4" stroke-width="2" fill="none" marker-start="url(#marker-access-start)"
+                  onclick="selectRelation('id-e74116d7a03243dfbb2bc9235baf7970')"
+                  data-source="id-dd2b87f6302740aa9fcd320e71293f30" data-target="id-1e8af2168f5a486fad7e406c0c0569d2" data-type="AccessRelationship"/>
+
+                <!-- Registry Update Process <-> Identity Mapping Registry (id-b33d8c37ca3e48f1a12acc5609250d44, accessType="3": Read/Write) -->
+                <path id="edge-id-b33d8c37ca3e48f1a12acc5609250d44" d="M 377 805 C 430 850, 420 1185, 470 1185" 
+                  class="arch-edge stroke-amber-600 dark:stroke-amber-400" stroke-dasharray="4,4" stroke-width="2.1" fill="none" marker-start="url(#marker-access-start)" marker-end="url(#marker-access)"
+                  onclick="selectRelation('id-b33d8c37ca3e48f1a12acc5609250d44')"
+                  data-source="id-5b4de8f4db39465880db047501e8ea3f" data-target="id-c4efa3ced13b4d15a3aebd973022aff8" data-type="AccessRelationship"/>
+
+                <!-- Data Harmonization Process -> Student Golden Record / Student 360 (id-5e46ca07e4964231a4e54b28da5d2dfb: Write) -->
+                <path id="edge-id-5e46ca07e4964231a4e54b28da5d2dfb" d="M 665 572 C 570 610, 560 800, 560 975" 
+                  class="arch-edge stroke-amber-600 dark:stroke-amber-400" stroke-dasharray="4,4" stroke-width="2" fill="none" marker-end="url(#marker-access)"
+                  onclick="selectRelation('id-5e46ca07e4964231a4e54b28da5d2dfb')"
+                  data-source="id-5c5f12f821494b7ab5d72bdb7e19af8e" data-target="id-786f5a654ed549dca138f3e6e781e5e8" data-type="AccessRelationship"/>
+
+                <!-- Data Exception Handling Process -> Student Golden Record / Student 360 (id-bb415d1f165c47ecbf6c587e0334a36e: Write) -->
+                <path id="edge-id-bb415d1f165c47ecbf6c587e0334a36e" d="M 730 810 L 650 975" 
+                  class="arch-edge stroke-amber-600 dark:stroke-amber-400" stroke-dasharray="4,4" stroke-width="2" fill="none" marker-end="url(#marker-access)"
+                  onclick="selectRelation('id-bb415d1f165c47ecbf6c587e0334a36e')"
+                  data-source="id-f0ade664d2b24e66901b69932492e396" data-target="id-786f5a654ed549dca138f3e6e781e5e8" data-type="AccessRelationship"/>
+
+                <!-- Data Exception Handling Process -> Identity Mapping Registry (id-d7e76517e63848adb1021e74aae1f503: Write) -->
+                <path id="edge-id-d7e76517e63848adb1021e74aae1f503" d="M 810 810 C 810 950, 810 1185, 770 1185" 
+                  class="arch-edge stroke-amber-600 dark:stroke-amber-400" stroke-dasharray="4,4" stroke-width="2" fill="none" marker-end="url(#marker-access)"
+                  onclick="selectRelation('id-d7e76517e63848adb1021e74aae1f503')"
+                  data-source="id-f0ade664d2b24e66901b69932492e396" data-target="id-c4efa3ced13b4d15a3aebd973022aff8" data-type="AccessRelationship"/>
+
+                <!-- Data Exception Handling Process <-> Reconciliation Ticket (id-d4ecab5ee5fa431ca137f3477c7b16f0, accessType="3": Read/Write) -->
+                <path id="edge-id-d4ecab5ee5fa431ca137f3477c7b16f0" d="M 910 810 C 1020 870, 1280 870, 1335 975" 
+                  class="arch-edge stroke-amber-600 dark:stroke-amber-400" stroke-dasharray="4,4" stroke-width="2.1" fill="none" marker-start="url(#marker-access-start)" marker-end="url(#marker-access)"
+                  onclick="selectRelation('id-d4ecab5ee5fa431ca137f3477c7b16f0')"
+                  data-source="id-f0ade664d2b24e66901b69932492e396" data-target="id-6081f53f480d482a9ea6d4116031d16c" data-type="AccessRelationship"/>
+
+                <!-- Risk Evaluation & Approval <-> Student Golden Record / Student 360 (id-345acb492f8f4ba19a77c9a905a78ee0, accessType="1": Read) -->
+                <path id="edge-id-345acb492f8f4ba19a77c9a905a78ee0" d="M 1220 590 C 1100 720, 740 840, 710 975" 
+                  class="arch-edge stroke-amber-600 dark:stroke-amber-400" stroke-dasharray="4,4" stroke-width="2" fill="none" marker-start="url(#marker-access-start)"
+                  onclick="selectRelation('id-345acb492f8f4ba19a77c9a905a78ee0')"
+                  data-source="id-0d4a85baa20f43fcb8f982967b2d6e29" data-target="id-786f5a654ed549dca138f3e6e781e5e8" data-type="AccessRelationship"/>
+
+                <!-- Risk Evaluation & Approval -> Academic Warning Notice (id-41fa8145c59e467dbe5235c15fa3ce9e: Write) -->
+                <path id="edge-id-41fa8145c59e467dbe5235c15fa3ce9e" d="M 1300 590 C 1300 740, 1020 820, 1005 975" 
+                  class="arch-edge stroke-amber-600 dark:stroke-amber-400" stroke-dasharray="4,4" stroke-width="2" fill="none" marker-end="url(#marker-access)"
+                  onclick="selectRelation('id-41fa8145c59e467dbe5235c15fa3ce9e')"
+                  data-source="id-0d4a85baa20f43fcb8f982967b2d6e29" data-target="id-dc88bd4f8d92418fb940c6b89a554d05" data-type="AccessRelationship"/>
+
+                <!-- === 6. AGGREGATION RELATIONSHIPS (3) === -->
+                <!-- Student Golden Record <>-- SIS Academic Record (id-c9a0225dbc01491fa6b370db6f579ed2) -->
+                <path id="edge-id-c9a0225dbc01491fa6b370db6f579ed2" d="M 470 1009 L 365 1009" 
+                  class="arch-edge stroke-slate-600 dark:stroke-slate-400" stroke-width="2" fill="none" marker-start="url(#marker-aggregation)"
+                  onclick="selectRelation('id-c9a0225dbc01491fa6b370db6f579ed2')"
+                  data-source="id-786f5a654ed549dca138f3e6e781e5e8" data-target="id-9d0f2b147caf4a2e9a7b0e47c66bba39" data-type="AggregationRelationship"/>
+
+                <!-- Student Golden Record <>-- Admissions Record (id-f84184f80bd847ddb79509cd0f3545fd) -->
+                <path id="edge-id-f84184f80bd847ddb79509cd0f3545fd" d="M 470 1025 C 420 1025, 415 1102, 365 1102" 
+                  class="arch-edge stroke-slate-600 dark:stroke-slate-400" stroke-width="2" fill="none" marker-start="url(#marker-aggregation)"
+                  onclick="selectRelation('id-f84184f80bd847ddb79509cd0f3545fd')"
+                  data-source="id-786f5a654ed549dca138f3e6e781e5e8" data-target="id-9bc7fbce33ba42b3af716ec487436aa2" data-type="AggregationRelationship"/>
+
+                <!-- Student Golden Record <>-- Fragmented LMS Data (id-ea1993d0b9824f459ac7a5f727b9bfd5) -->
+                <path id="edge-id-ea1993d0b9824f459ac7a5f727b9bfd5" d="M 470 1042 C 410 1042, 410 1195, 365 1195" 
+                  class="arch-edge stroke-slate-600 dark:stroke-slate-400" stroke-width="2" fill="none" marker-start="url(#marker-aggregation)"
+                  onclick="selectRelation('id-ea1993d0b9824f459ac7a5f727b9bfd5')"
+                  data-source="id-786f5a654ed549dca138f3e6e781e5e8" data-target="id-1e8af2168f5a486fad7e406c0c0569d2" data-type="AggregationRelationship"/>
+
+                <!-- === RELATIONSHIP LABELS OVERLAY === -->
+                <!-- Triggering Label 1: Match Rate = 100% (id-dc72b8f97fa041b6a691b8b304823ed6) -->
+                <g id="label-id-dc72b8f97fa041b6a691b8b304823ed6" class="edge-label-group cursor-pointer" onclick="selectRelation('id-dc72b8f97fa041b6a691b8b304823ed6')" data-edge="id-dc72b8f97fa041b6a691b8b304823ed6" data-type="TriggeringRelationship">
+                  <rect x="448" y="562" width="154" height="24" rx="12" class="fill-white dark:fill-slate-900 stroke-red-500 dark:stroke-red-400 stroke-1.5" filter="url(#shadow)"/>
+                  <circle cx="461" cy="574" r="3.5" class="fill-emerald-500"/>
+                  <text x="470" y="578" class="text-[11px] font-bold fill-slate-800 dark:fill-slate-100">Match Rate = 100%</text>
+                </g>
+
+                <!-- Triggering Label 2: Discrepancy / Match Rate < 100% (id-14fcea8810604516a810255c5563e1af) -->
+                <g id="label-id-14fcea8810604516a810255c5563e1af" class="edge-label-group cursor-pointer" onclick="selectRelation('id-14fcea8810604516a810255c5563e1af')" data-edge="id-14fcea8810604516a810255c5563e1af" data-type="TriggeringRelationship">
+                  <rect x="415" y="759" width="225" height="24" rx="12" class="fill-white dark:fill-slate-900 stroke-red-500 dark:stroke-red-400 stroke-1.5" filter="url(#shadow)"/>
+                  <circle cx="428" cy="771" r="3.5" class="fill-rose-500"/>
+                  <text x="437" y="775" class="text-[11px] font-bold fill-slate-800 dark:fill-slate-100">Discrepancy / Match Rate &lt; 100%</text>
+                </g>
+
+                <!-- Access Mode Badges (Toggleable) -->
+                <g id="accessLabelsGroup">
+                  <g class="edge-label-group cursor-pointer" onclick="selectRelation('id-85abed91c6e642ad8fbcd3b8e2f00959')" data-edge="id-85abed91c6e642ad8fbcd3b8e2f00959">
+                    <rect x="52" y="998" width="38" height="18" rx="4" class="fill-amber-100 dark:fill-amber-950 stroke-amber-500 stroke-1"/>
+                    <text x="58" y="1010" class="text-[9px] font-bold fill-amber-800 dark:fill-amber-300">Read</text>
+                  </g>
+                  <g class="edge-label-group cursor-pointer" onclick="selectRelation('id-091b80134620480d95eead474caaf58f')" data-edge="id-091b80134620480d95eead474caaf58f">
+                    <rect x="44" y="1091" width="38" height="18" rx="4" class="fill-amber-100 dark:fill-amber-950 stroke-amber-500 stroke-1"/>
+                    <text x="50" y="1103" class="text-[9px] font-bold fill-amber-800 dark:fill-amber-300">Read</text>
+                  </g>
+                  <g class="edge-label-group cursor-pointer" onclick="selectRelation('id-e74116d7a03243dfbb2bc9235baf7970')" data-edge="id-e74116d7a03243dfbb2bc9235baf7970">
+                    <rect x="36" y="1184" width="38" height="18" rx="4" class="fill-amber-100 dark:fill-amber-950 stroke-amber-500 stroke-1"/>
+                    <text x="42" y="1196" class="text-[9px] font-bold fill-amber-800 dark:fill-amber-300">Read</text>
+                  </g>
+                  <g class="edge-label-group cursor-pointer" onclick="selectRelation('id-b33d8c37ca3e48f1a12acc5609250d44')" data-edge="id-b33d8c37ca3e48f1a12acc5609250d44">
+                    <rect x="392" y="1025" width="66" height="18" rx="4" class="fill-amber-100 dark:fill-amber-950 stroke-amber-500 stroke-1"/>
+                    <text x="398" y="1037" class="text-[9px] font-bold fill-amber-800 dark:fill-amber-300">Read/Write</text>
+                  </g>
+                  <g class="edge-label-group cursor-pointer" onclick="selectRelation('id-5e46ca07e4964231a4e54b28da5d2dfb')" data-edge="id-5e46ca07e4964231a4e54b28da5d2dfb">
+                    <rect x="540" y="840" width="44" height="18" rx="4" class="fill-amber-100 dark:fill-amber-950 stroke-amber-500 stroke-1"/>
+                    <text x="548" y="852" class="text-[9px] font-bold fill-amber-800 dark:fill-amber-300">Write</text>
+                  </g>
+                  <g class="edge-label-group cursor-pointer" onclick="selectRelation('id-bb415d1f165c47ecbf6c587e0334a36e')" data-edge="id-bb415d1f165c47ecbf6c587e0334a36e">
+                    <rect x="668" y="888" width="44" height="18" rx="4" class="fill-amber-100 dark:fill-amber-950 stroke-amber-500 stroke-1"/>
+                    <text x="676" y="900" class="text-[9px] font-bold fill-amber-800 dark:fill-amber-300">Write</text>
+                  </g>
+                  <g class="edge-label-group cursor-pointer" onclick="selectRelation('id-d7e76517e63848adb1021e74aae1f503')" data-edge="id-d7e76517e63848adb1021e74aae1f503">
+                    <rect x="788" y="1085" width="44" height="18" rx="4" class="fill-amber-100 dark:fill-amber-950 stroke-amber-500 stroke-1"/>
+                    <text x="796" y="1097" class="text-[9px] font-bold fill-amber-800 dark:fill-amber-300">Write</text>
+                  </g>
+                  <g class="edge-label-group cursor-pointer" onclick="selectRelation('id-d4ecab5ee5fa431ca137f3477c7b16f0')" data-edge="id-d4ecab5ee5fa431ca137f3477c7b16f0">
+                    <rect x="1125" y="875" width="66" height="18" rx="4" class="fill-amber-100 dark:fill-amber-950 stroke-amber-500 stroke-1"/>
+                    <text x="1131" y="887" class="text-[9px] font-bold fill-amber-800 dark:fill-amber-300">Read/Write</text>
+                  </g>
+                  <g class="edge-label-group cursor-pointer" onclick="selectRelation('id-345acb492f8f4ba19a77c9a905a78ee0')" data-edge="id-345acb492f8f4ba19a77c9a905a78ee0">
+                    <rect x="860" y="835" width="44" height="18" rx="4" class="fill-amber-100 dark:fill-amber-950 stroke-amber-500 stroke-1"/>
+                    <text x="867" y="847" class="text-[9px] font-bold fill-amber-800 dark:fill-amber-300">Read</text>
+                  </g>
+                  <g class="edge-label-group cursor-pointer" onclick="selectRelation('id-41fa8145c59e467dbe5235c15fa3ce9e')" data-edge="id-41fa8145c59e467dbe5235c15fa3ce9e">
+                    <rect x="1035" y="835" width="44" height="18" rx="4" class="fill-amber-100 dark:fill-amber-950 stroke-amber-500 stroke-1"/>
+                    <text x="1043" y="847" class="text-[9px] font-bold fill-amber-800 dark:fill-amber-300">Write</text>
+                  </g>
+                </g>
+
+              </g>
+            </g>
+          </svg>
+        </div>
+      </div>
+
+      <!-- View 2: Traceability Matrix (Ma trận truy vết) -->
+      <div id="viewMatrix" class="hidden w-full h-full p-6 overflow-y-auto bg-slate-50 dark:bg-slate-900">
+        <div class="max-w-6xl mx-auto space-y-6">
+          <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+            <h2 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <i class="fa-solid fa-table-cells text-amber-500"></i> Ma trận Truy vết Kiến trúc (EA Traceability Matrix)
+            </h2>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              Bảng tra cứu mối quan hệ liên tầng giữa Tác nhân (Actors), Dịch vụ (Services), Quy trình (Processes) và Đối tượng dữ liệu (Business Objects) theo phiên bản XML cập nhật.
+            </p>
+          </div>
+
+          <!-- Traceability Table -->
+          <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left">
+                <thead class="bg-slate-100 dark:bg-slate-700/60 text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 uppercase font-semibold">
+                  <tr>
+                    <th class="p-3.5">Tiến trình (Business Process)</th>
+                    <th class="p-3.5">Thực thi Dịch vụ (Realizes)</th>
+                    <th class="p-3.5">Dịch vụ phục vụ (Serves Actor)</th>
+                    <th class="p-3.5">Truy cập dữ liệu (Accesses Object)</th>
+                    <th class="p-3.5">Tác nhân chịu trách nhiệm (Assigned by)</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 dark:divide-slate-700 font-medium">
+                  <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30">
+                    <td class="p-3.5 font-bold text-slate-900 dark:text-white">Multi-source Ingestion Process</td>
+                    <td class="p-3.5 text-blue-600 dark:text-blue-400 font-semibold">Student MDM Service</td>
+                    <td class="p-3.5 text-emerald-600 dark:text-emerald-400">Students, Academic Affairs Office</td>
+                    <td class="p-3.5 text-amber-600 dark:text-amber-400">[Read] Admissions Record, Fragmented LMS Data, SIS Academic Record</td>
+                    <td class="p-3.5 text-slate-400 italic">—</td>
+                  </tr>
+                  <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30">
+                    <td class="p-3.5 font-bold text-slate-900 dark:text-white">Identity Resolution Process</td>
+                    <td class="p-3.5 text-blue-600 dark:text-blue-400 font-semibold">Student MDM Service</td>
+                    <td class="p-3.5 text-emerald-600 dark:text-emerald-400">Students, Academic Affairs Office</td>
+                    <td class="p-3.5 text-amber-600 dark:text-amber-400">[Read/Write] Identity Mapping Registry (via Registry Update Process)</td>
+                    <td class="p-3.5 text-slate-400 italic">—</td>
+                  </tr>
+                  <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30">
+                    <td class="p-3.5 font-bold text-slate-900 dark:text-white">Data Harmonization Process</td>
+                    <td class="p-3.5 text-blue-600 dark:text-blue-400 font-semibold">Student MDM Service</td>
+                    <td class="p-3.5 text-emerald-600 dark:text-emerald-400">Students, Academic Affairs Office</td>
+                    <td class="p-3.5 text-amber-600 dark:text-amber-400">[Write] Student Golden Record / Student 360</td>
+                    <td class="p-3.5 text-slate-400 italic">—</td>
+                  </tr>
+                  <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30">
+                    <td class="p-3.5 font-bold text-slate-900 dark:text-white">Data Exception Handling Process</td>
+                    <td class="p-3.5 text-blue-600 dark:text-blue-400 font-semibold">Data Reconciliation Service, Discrepancy Dispute Service</td>
+                    <td class="p-3.5 text-emerald-600 dark:text-emerald-400">Academic Data Steward, Students</td>
+                    <td class="p-3.5 text-amber-600 dark:text-amber-400">[Read/Write] Reconciliation Ticket; [Write] Identity Mapping Registry, Student Golden Record / 360</td>
+                    <td class="p-3.5 text-purple-600 dark:text-purple-400">Academic Data Steward</td>
+                  </tr>
+                  <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30">
+                    <td class="p-3.5 font-bold text-slate-900 dark:text-white">Risk Evaluation &amp; Approval Process</td>
+                    <td class="p-3.5 text-blue-600 dark:text-blue-400 font-semibold">Academic Health Monitoring Service</td>
+                    <td class="p-3.5 text-emerald-600 dark:text-emerald-400">Academic Advisor, Academic Affairs Office</td>
+                    <td class="p-3.5 text-amber-600 dark:text-amber-400">[Read] Student Golden Record / 360; [Write] Academic Warning Notice</td>
+                    <td class="p-3.5 text-purple-600 dark:text-purple-400">Academic Advisor</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- View 3: Element & Relationship Dictionary (Danh mục phần tử) -->
+      <div id="viewDictionary" class="hidden w-full h-full p-6 overflow-y-auto bg-slate-50 dark:bg-slate-900">
+        <div class="max-w-6xl mx-auto space-y-6">
+          <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex items-center justify-between">
+            <div>
+              <h2 class="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <i class="fa-solid fa-book-bookmark text-amber-500"></i> Danh mục Phần tử &amp; Quan hệ Kiến trúc (100% XML)
+              </h2>
+              <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Tổng cộng: 22 Phần tử thực thể + 4 Groupings + 33 Quan hệ chuẩn ArchiMate 5.0 XML.</p>
+            </div>
+            <div class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
+              Mô hình: Student MDM 360
+            </div>
+          </div>
+
+          <!-- Elements List Table -->
+          <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+            <div class="p-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 font-bold text-xs">
+              Danh mục 22 Phần tử Kiến trúc (Elements)
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left" id="dictionaryTable">
+                <thead class="bg-slate-100 dark:bg-slate-700/60 text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 font-semibold uppercase">
+                  <tr>
+                    <th class="p-3">Tên phần tử (Name)</th>
+                    <th class="p-3">Loại ArchiMate (Type)</th>
+                    <th class="p-3">Tầng (Layer)</th>
+                    <th class="p-3">XML ID</th>
+                    <th class="p-3 text-right">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody id="dictionaryTableBody" class="divide-y divide-slate-100 dark:divide-slate-700">
+                  <!-- Populated dynamically by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Relationships List Table -->
+          <div class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm overflow-hidden">
+            <div class="p-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 font-bold text-xs">
+              Danh mục 33 Quan hệ Kiến trúc (Relationships)
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs text-left">
+                <thead class="bg-slate-100 dark:bg-slate-700/60 text-slate-700 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 font-semibold uppercase">
+                  <tr>
+                    <th class="p-3">Loại quan hệ</th>
+                    <th class="p-3">Nguồn (Source)</th>
+                    <th class="p-3">Đích (Target)</th>
+                    <th class="p-3">Nhãn / Chế độ (Label / Mode)</th>
+                    <th class="p-3">XML ID</th>
+                  </tr>
+                </thead>
+                <tbody id="relationsTableBody" class="divide-y divide-slate-100 dark:divide-slate-700">
+                  <!-- Populated dynamically by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Right Element Inspector / Metadata Drawer -->
+    <aside id="inspectorDrawer" class="w-80 lg:w-96 bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 flex flex-col shrink-0 shadow-2xl z-20 transition-all duration-300 translate-x-full absolute right-0 top-0 bottom-0">
+      <div class="p-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-slate-50/70 dark:bg-slate-800/50">
+        <div class="flex items-center gap-2">
+          <span class="w-7 h-7 rounded-lg bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xs">
+            <i class="fa-solid fa-circle-info"></i>
+          </span>
+          <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">Chi tiết phần tử</h3>
+        </div>
+        <button onclick="closeInspector()" class="w-7 h-7 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 flex items-center justify-center transition">
+          <i class="fa-solid fa-xmark text-sm"></i>
+        </button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-4 space-y-4 text-xs" id="inspectorContent">
+        <!-- Rendered dynamically -->
+      </div>
+    </aside>
+
+  </div>
+
+  <!-- APPLICATION LOGIC IN JAVASCRIPT -->
+  <script>
+    // 1. COMPLETE ARCHIMATE XML DATA MODEL (100% FAITHFUL TO USER XML)
+    const MODEL_DATA = {
+      modelInfo: {
+        id: "id-8346510437bb4043b0add10a6f2e48ec",
+        name: "(new model) - Student MDM & Academic Health",
+        version: "5.0.0"
+      },
+      layers: {
+        actors: { id: "id-5580e8eacbfc49b1b79e0c4fea3985d7", name: "Business Actors & Roles", count: 4 },
+        services: { id: "id-f9c90df1dfe54e63a6d2dfaf2e89604a", name: "Business Services", count: 4 },
+        processes: { id: "id-5c6eb37b6d874f65acc8ccc24bcc73cb", name: "Business Processes & Functions", count: 7 },
+        objects: { id: "id-ddfc34d60624485a99166c6660215b4b", name: "Business Objects", count: 7 }
+      },
+      elements: {
+        // Actors
+        "id-4d5679b43bce4a6dba6b39c756adab81": {
+          id: "id-4d5679b43bce4a6dba6b39c756adab81",
+          name: "Students",
+          vietnameseName: "Sinh viên / Người học",
+          type: "BusinessActor",
+          layer: "Business Actors & Roles",
+          desc: "Đối tượng người học thụ hưởng các dịch vụ quản trị dữ liệu học thuật 360, tra cứu thông tin sinh viên và thực hiện các khiếu nại sai lệch thông tin nếu có."
+        },
+        "id-7eae3e85fa064257b8605c91d73321b9": {
+          id: "id-7eae3e85fa064257b8605c91d73321b9",
+          name: "Academic Affairs Office",
+          vietnameseName: "Phòng Quản lý Đào tạo",
+          type: "BusinessActor",
+          layer: "Business Actors & Roles",
+          desc: "Đơn vị chuyên trách quản lý hồ sơ sinh viên, tiếp nhận các báo cáo cảnh báo học vụ, giám sát tiến độ tốt nghiệp và cấp bằng."
+        },
+        "id-7093bd8cf0604fcaa5186388d6883622": {
+          id: "id-7093bd8cf0604fcaa5186388d6883622",
+          name: "Academic Data Steward",
+          vietnameseName: "Quản trị viên Dữ liệu Học thuật",
+          type: "BusinessActor",
+          layer: "Business Actors & Roles",
+          desc: "Chuyên viên chịu trách nhiệm giám sát chất lượng dữ liệu đào tạo, thực thi quy trình xử lý ngoại lệ dữ liệu và đối soát các xung đột định danh."
+        },
+        "id-43204553cc47402881995485530e0c1c": {
+          id: "id-43204553cc47402881995485530e0c1c",
+          name: "Academic Advisor",
+          vietnameseName: "Cố vấn Học tập / Giảng viên Chủ nhiệm",
+          type: "BusinessActor",
+          layer: "Business Actors & Roles",
+          desc: "Đội ngũ cố vấn đồng hành cùng sinh viên, trực tiếp đánh giá nguy cơ học vụ, phê duyệt cảnh báo và tư vấn can thiệp sớm cho sinh viên có nguy cơ."
+        },
+
+        // Services
+        "id-7fb6a0ee438f48abadfbf1c3a0507837": {
+          id: "id-7fb6a0ee438f48abadfbf1c3a0507837",
+          name: "Student MDM Service",
+          vietnameseName: "Dịch vụ Master Data Sinh viên",
+          type: "BusinessService",
+          layer: "Business Services",
+          desc: "Cung cấp bản ghi gốc hợp nhất (Single Source of Truth) về danh tính và hồ sơ học viên cho toàn trường và sinh viên."
+        },
+        "id-d7b4223591154774a7ae7cea58fbcd0c": {
+          id: "id-d7b4223591154774a7ae7cea58fbcd0c",
+          name: "Data Reconciliation Service",
+          vietnameseName: "Dịch vụ Đối soát Dữ liệu",
+          type: "BusinessService",
+          layer: "Business Services",
+          desc: "Dịch vụ đối soát và tự động kiểm tra sai lệch dữ liệu giữa hệ thống tuyển sinh, SIS và LMS, hỗ trợ chuyên viên xử lý sai khác."
+        },
+        "id-55ea02c260604685820f3db71871805c": {
+          id: "id-55ea02c260604685820f3db71871805c",
+          name: "Academic Health Monitoring Service",
+          vietnameseName: "Dịch vụ Giám sát Sức khỏe Học vụ",
+          type: "BusinessService",
+          layer: "Business Services",
+          desc: "Giám sát chỉ số học tập, tính toán rủi ro học vụ (điểm GPA, tín chỉ nợ, chuyên cần) và gửi cảnh báo sớm đến cố vấn và phòng đào tạo."
+        },
+        "id-009b42323a1b4e3193fc8f7128db3b95": {
+          id: "id-009b42323a1b4e3193fc8f7128db3b95",
+          name: "Discrepancy Dispute Service",
+          vietnameseName: "Dịch vụ Tiếp nhận Khiếu nại Sai lệch",
+          type: "BusinessService",
+          layer: "Business Services",
+          desc: "Kênh dịch vụ cho phép sinh viên phản hồi, khiếu nại thông tin cá nhân hoặc điểm số khi phát hiện sai lệch."
+        },
+
+        // Processes
+        "id-dd2b87f6302740aa9fcd320e71293f30": {
+          id: "id-dd2b87f6302740aa9fcd320e71293f30",
+          name: "Multi-source Ingestion Process",
+          vietnameseName: "Quy trình Thu nạp Dữ liệu Đa nguồn",
+          type: "BusinessProcess",
+          layer: "Business Processes & Functions",
+          desc: "Quy trình thu gom dữ liệu thô định kỳ/thời gian thực từ hệ thống Tuyển sinh, hồ sơ đào tạo SIS và nhật ký học tập LMS."
+        },
+        "id-d57b93a28fa54cf1a91ead614cc4a607": {
+          id: "id-d57b93a28fa54cf1a91ead614cc4a607",
+          name: "Identity Resolution Process",
+          vietnameseName: "Quy trình Giải quyết & Đối khớp Danh tính",
+          type: "BusinessProcess",
+          layer: "Business Processes & Functions",
+          isComposite: true,
+          desc: "Quy trình phức hợp (Composite Process) đảm bảo nhận diện chính xác từng sinh viên qua các nguồn phân tán, gồm 2 quy trình con lồng nhau."
+        },
+        "id-07c8ccf60d544be985dda208bbf5d959": {
+          id: "id-07c8ccf60d544be985dda208bbf5d959",
+          name: "Rule-based Identity Matching Process",
+          vietnameseName: "Quy trình Khớp Danh tính theo Tập luật",
+          type: "BusinessProcess",
+          layer: "Business Processes & Functions",
+          desc: "Áp dụng các luật định danh: CCCD/CMND, mã số thí sinh, email trường, số điện thoại để ghép nối hồ sơ."
+        },
+        "id-5b4de8f4db39465880db047501e8ea3f": {
+          id: "id-5b4de8f4db39465880db047501e8ea3f",
+          name: "Registry Update Process",
+          vietnameseName: "Quy trình Cập nhật Ánh xạ Registry",
+          type: "BusinessProcess",
+          layer: "Business Processes & Functions",
+          desc: "Cập nhật bảng ánh xạ mã định danh toàn trường (Enterprise Student ID) tương ứng với từng hệ thống nguồn."
+        },
+        "id-5c5f12f821494b7ab5d72bdb7e19af8e": {
+          id: "id-5c5f12f821494b7ab5d72bdb7e19af8e",
+          name: "Data Harmonization Process",
+          vietnameseName: "Quy trình Hài hòa & Chuẩn hóa Dữ liệu",
+          type: "BusinessProcess",
+          layer: "Business Processes & Functions",
+          desc: "Làm sạch, định dạng chuẩn quốc gia và hợp nhất dữ liệu thành Bản ghi Vàng (Golden Record/Student 360)."
+        },
+        "id-f0ade664d2b24e66901b69932492e396": {
+          id: "id-f0ade664d2b24e66901b69932492e396",
+          name: "Data Exception Handling Process",
+          vietnameseName: "Quy trình Xử lý Ngoại lệ Dữ liệu",
+          type: "BusinessProcess",
+          layer: "Business Processes & Functions",
+          desc: "Khi không thể tự động nhận dạng hoặc có mâu thuẫn điểm, quy trình tạo phiếu đối soát (Ticket) chuyển cho Steward xử lý thủ công."
+        },
+        "id-0d4a85baa20f43fcb8f982967b2d6e29": {
+          id: "id-0d4a85baa20f43fcb8f982967b2d6e29",
+          name: "Risk Evaluation & Approval Process",
+          vietnameseName: "Quy trình Đánh giá Rủi ro & Phê duyệt",
+          type: "BusinessProcess",
+          layer: "Business Processes & Functions",
+          desc: "Cố vấn học tập và phòng đào tạo đánh giá các tín hiệu suy giảm học lực để phê duyệt thông báo cảnh báo chính thức."
+        },
+
+        // Objects
+        "id-9bc7fbce33ba42b3af716ec487436aa2": {
+          id: "id-9bc7fbce33ba42b3af716ec487436aa2",
+          name: "Admissions Record",
+          vietnameseName: "Hồ sơ Tuyển sinh",
+          type: "BusinessObject",
+          layer: "Business Objects",
+          desc: "Dữ liệu ban đầu khi sinh viên nhập học: thông tin cá nhân, điểm thi THPT, ngành trúng tuyển, thông tin liên lạc gốc."
+        },
+        "id-1e8af2168f5a486fad7e406c0c0569d2": {
+          id: "id-1e8af2168f5a486fad7e406c0c0569d2",
+          name: "Fragmented LMS Data",
+          vietnameseName: "Dữ liệu Học trực tuyến Phân mảnh LMS",
+          type: "BusinessObject",
+          layer: "Business Objects",
+          desc: "Lịch sử đăng nhập, nộp bài tập, điểm trắc nghiệm trực tuyến, thời lượng học trên các nền tảng E-Learning/Moodle."
+        },
+        "id-9d0f2b147caf4a2e9a7b0e47c66bba39": {
+          id: "id-9d0f2b147caf4a2e9a7b0e47c66bba39",
+          name: "SIS Academic Record",
+          vietnameseName: "Hồ sơ Quản lý Đào tạo SIS",
+          type: "BusinessObject",
+          layer: "Business Objects",
+          desc: "Hồ sơ bảng điểm học kỳ, tín chỉ tích lũy, thời khóa biểu, điểm thi cuối kỳ chính thức trên hệ thống SIS."
+        },
+        "id-c4efa3ced13b4d15a3aebd973022aff8": {
+          id: "id-c4efa3ced13b4d15a3aebd973022aff8",
+          name: "Identity Mapping Registry",
+          vietnameseName: "Sổ bộ Ánh xạ Định danh Sinh viên",
+          type: "BusinessObject",
+          layer: "Business Objects",
+          desc: "Cơ sở dữ liệu ánh xạ liên kết giữa Student_ID (SIS), User_ID (LMS) và Candidate_ID (Tuyển sinh)."
+        },
+        "id-786f5a654ed549dca138f3e6e781e5e8": {
+          id: "id-786f5a654ed549dca138f3e6e781e5e8",
+          name: "Student Golden Record / Student 360",
+          vietnameseName: "Bản ghi Vàng Hồ sơ Sinh viên 360",
+          type: "BusinessObject",
+          layer: "Business Objects",
+          desc: "Hồ sơ tổng thể đã làm sạch và hợp nhất tuyệt đối, đại diện cho góc nhìn duy nhất 360 độ về một sinh viên."
+        },
+        "id-6081f53f480d482a9ea6d4116031d16c": {
+          id: "id-6081f53f480d482a9ea6d4116031d16c",
+          name: "Reconciliation Ticket",
+          vietnameseName: "Phiếu Đối soát & Xử lý Ngoại lệ",
+          type: "BusinessObject",
+          layer: "Business Objects",
+          desc: "Vé công việc (Ticket) ghi nhận sai biệt định danh hoặc mâu thuẫn điểm số, phân công cho chuyên viên đối soát."
+        },
+        "id-dc88bd4f8d92418fb940c6b89a554d05": {
+          id: "id-dc88bd4f8d92418fb940c6b89a554d05",
+          name: "Academic Warning Notice",
+          vietnameseName: "Thông báo Cảnh báo Học vụ",
+          type: "BusinessObject",
+          layer: "Business Objects",
+          desc: "Văn bản quyết định hoặc thông báo điện tử gửi tới sinh viên và gia đình khi có nguy cơ học vụ nghiêm trọng."
+        }
+      },
+      relationships: [
+        // Realization (6)
+        { id: "id-bda0bae67d2a4dc688998b889ee43068", type: "RealizationRelationship", source: "id-dd2b87f6302740aa9fcd320e71293f30", target: "id-7fb6a0ee438f48abadfbf1c3a0507837", name: "Realizes" },
+        { id: "id-e205a30bb1624188a8d991aea3f41dd0", type: "RealizationRelationship", source: "id-d57b93a28fa54cf1a91ead614cc4a607", target: "id-7fb6a0ee438f48abadfbf1c3a0507837", name: "Realizes" },
+        { id: "id-929392d220e84067bd514ad4fe1298c1", type: "RealizationRelationship", source: "id-5c5f12f821494b7ab5d72bdb7e19af8e", target: "id-7fb6a0ee438f48abadfbf1c3a0507837", name: "Realizes" },
+        { id: "id-46336887360b4ae3af33f7f4dfcfa6c2", type: "RealizationRelationship", source: "id-f0ade664d2b24e66901b69932492e396", target: "id-d7b4223591154774a7ae7cea58fbcd0c", name: "Realizes" },
+        { id: "id-5eeed1a3e0ee4502bc47731f5ecb3d40", type: "RealizationRelationship", source: "id-f0ade664d2b24e66901b69932492e396", target: "id-009b42323a1b4e3193fc8f7128db3b95", name: "Realizes" },
+        { id: "id-63a18c48c3754af1bdd5dd71b2ef2aa3", type: "RealizationRelationship", source: "id-0d4a85baa20f43fcb8f982967b2d6e29", target: "id-55ea02c260604685820f3db71871805c", name: "Realizes" },
+
+        // Serving (6)
+        { id: "id-685ca840552143eaa46b5a8394cb7d78", type: "ServingRelationship", source: "id-7fb6a0ee438f48abadfbf1c3a0507837", target: "id-4d5679b43bce4a6dba6b39c756adab81", name: "Serves" },
+        { id: "id-ff896a9f5a9e4e858e75e01602d063f3", type: "ServingRelationship", source: "id-7fb6a0ee438f48abadfbf1c3a0507837", target: "id-7eae3e85fa064257b8605c91d73321b9", name: "Serves" },
+        { id: "id-081ab6d57ce449ab8442f62347404b4c", type: "ServingRelationship", source: "id-55ea02c260604685820f3db71871805c", target: "id-43204553cc47402881995485530e0c1c", name: "Serves" },
+        { id: "id-acff1ba34807457d816c957d3a54bad0", type: "ServingRelationship", source: "id-55ea02c260604685820f3db71871805c", target: "id-7eae3e85fa064257b8605c91d73321b9", name: "Serves" },
+        { id: "id-32baa736f8f4488f8eb0679493422d38", type: "ServingRelationship", source: "id-d7b4223591154774a7ae7cea58fbcd0c", target: "id-7093bd8cf0604fcaa5186388d6883622", name: "Serves" },
+        { id: "id-27bac1c486ce4e6b947fe66561155d85", type: "ServingRelationship", source: "id-009b42323a1b4e3193fc8f7128db3b95", target: "id-4d5679b43bce4a6dba6b39c756adab81", name: "Serves" },
+
+        // Triggering (4 - with explicit condition labels)
+        { id: "id-ead653d1d5084f839379e0d171cad782", type: "TriggeringRelationship", source: "id-dd2b87f6302740aa9fcd320e71293f30", target: "id-d57b93a28fa54cf1a91ead614cc4a607", name: "Triggers" },
+        { id: "id-dc72b8f97fa041b6a691b8b304823ed6", type: "TriggeringRelationship", source: "id-d57b93a28fa54cf1a91ead614cc4a607", target: "id-5c5f12f821494b7ab5d72bdb7e19af8e", name: "Triggers", label: "Match Rate = 100%" },
+        { id: "id-14fcea8810604516a810255c5563e1af", type: "TriggeringRelationship", source: "id-d57b93a28fa54cf1a91ead614cc4a607", target: "id-f0ade664d2b24e66901b69932492e396", name: "Triggers", label: "Discrepancy / Match Rate < 100%" },
+        { id: "id-42d33adae0094c328ed284a588acd44b", type: "TriggeringRelationship", source: "id-5c5f12f821494b7ab5d72bdb7e19af8e", target: "id-0d4a85baa20f43fcb8f982967b2d6e29", name: "Triggers" },
+
+        // Assignment (2)
+        { id: "id-ebacf3fead364e489b9bbc5774475309", type: "AssignmentRelationship", source: "id-7093bd8cf0604fcaa5186388d6883622", target: "id-f0ade664d2b24e66901b69932492e396", name: "Assigned To" },
+        { id: "id-8a9f778acdc0495aac3932c9edea6c55", type: "AssignmentRelationship", source: "id-43204553cc47402881995485530e0c1c", target: "id-0d4a85baa20f43fcb8f982967b2d6e29", name: "Assigned To" },
+
+        // Access (10)
+        { id: "id-091b80134620480d95eead474caaf58f", type: "AccessRelationship", source: "id-dd2b87f6302740aa9fcd320e71293f30", target: "id-9bc7fbce33ba42b3af716ec487436aa2", accessType: "1", name: "Reads", label: "Read (accessType=1)" },
+        { id: "id-e74116d7a03243dfbb2bc9235baf7970", type: "AccessRelationship", source: "id-dd2b87f6302740aa9fcd320e71293f30", target: "id-1e8af2168f5a486fad7e406c0c0569d2", accessType: "1", name: "Reads", label: "Read (accessType=1)" },
+        { id: "id-85abed91c6e642ad8fbcd3b8e2f00959", type: "AccessRelationship", source: "id-dd2b87f6302740aa9fcd320e71293f30", target: "id-9d0f2b147caf4a2e9a7b0e47c66bba39", accessType: "1", name: "Reads", label: "Read (accessType=1)" },
+        { id: "id-b33d8c37ca3e48f1a12acc5609250d44", type: "AccessRelationship", source: "id-5b4de8f4db39465880db047501e8ea3f", target: "id-c4efa3ced13b4d15a3aebd973022aff8", accessType: "3", name: "Reads/Writes", label: "Read/Write (accessType=3)" },
+        { id: "id-5e46ca07e4964231a4e54b28da5d2dfb", type: "AccessRelationship", source: "id-5c5f12f821494b7ab5d72bdb7e19af8e", target: "id-786f5a654ed549dca138f3e6e781e5e8", name: "Writes", label: "Write" },
+        { id: "id-d4ecab5ee5fa431ca137f3477c7b16f0", type: "AccessRelationship", source: "id-f0ade664d2b24e66901b69932492e396", target: "id-6081f53f480d482a9ea6d4116031d16c", accessType: "3", name: "Reads/Writes", label: "Read/Write (accessType=3)" },
+        { id: "id-d7e76517e63848adb1021e74aae1f503", type: "AccessRelationship", source: "id-f0ade664d2b24e66901b69932492e396", target: "id-c4efa3ced13b4d15a3aebd973022aff8", name: "Writes", label: "Write" },
+        { id: "id-bb415d1f165c47ecbf6c587e0334a36e", type: "AccessRelationship", source: "id-f0ade664d2b24e66901b69932492e396", target: "id-786f5a654ed549dca138f3e6e781e5e8", name: "Writes", label: "Write" },
+        { id: "id-345acb492f8f4ba19a77c9a905a78ee0", type: "AccessRelationship", source: "id-0d4a85baa20f43fcb8f982967b2d6e29", target: "id-786f5a654ed549dca138f3e6e781e5e8", accessType: "1", name: "Reads", label: "Read (accessType=1)" },
+        { id: "id-41fa8145c59e467dbe5235c15fa3ce9e", type: "AccessRelationship", source: "id-0d4a85baa20f43fcb8f982967b2d6e29", target: "id-dc88bd4f8d92418fb940c6b89a554d05", name: "Writes", label: "Write" },
+
+        // Aggregation (3)
+        { id: "id-f84184f80bd847ddb79509cd0f3545fd", type: "AggregationRelationship", source: "id-786f5a654ed549dca138f3e6e781e5e8", target: "id-9bc7fbce33ba42b3af716ec487436aa2", name: "Aggregates" },
+        { id: "id-ea1993d0b9824f459ac7a5f727b9bfd5", type: "AggregationRelationship", source: "id-786f5a654ed549dca138f3e6e781e5e8", target: "id-1e8af2168f5a486fad7e406c0c0569d2", name: "Aggregates" },
+        { id: "id-c9a0225dbc01491fa6b370db6f579ed2", type: "AggregationRelationship", source: "id-786f5a654ed549dca138f3e6e781e5e8", target: "id-9d0f2b147caf4a2e9a7b0e47c66bba39", name: "Aggregates" },
+
+        // Composition (2)
+        { id: "id-b60d560fc4ac43739df43564693df5d1", type: "CompositionRelationship", source: "id-d57b93a28fa54cf1a91ead614cc4a607", target: "id-07c8ccf60d544be985dda208bbf5d959", name: "Composes" },
+        { id: "id-2d7aee132c114863b9f053c73f9625fb", type: "CompositionRelationship", source: "id-d57b93a28fa54cf1a91ead614cc4a607", target: "id-5b4de8f4db39465880db047501e8ea3f", name: "Composes" }
+      ]
+    };
+
+    // 2. STATE & PAN/ZOOM CONTROLS
+    let zoomLevel = 1.0;
+    let panX = 0;
+    let panY = 0;
+    let isPanning = false;
+    let startX = 0;
+    let startY = 0;
+    let selectedNodeId = null;
+    let isColorCoded = true;
+    let showAccessLabels = true;
+
+    function updateTransform() {
+      viewportGroup.setAttribute('transform', `translate(${panX}, ${panY}) scale(${zoomLevel})`);
+    }
+
+    // Pan events
+    svgContainer.addEventListener('mousedown', (e) => {
+      // only trigger if not clicking directly on a button or node
+      if (e.target.closest('.arch-node')) return;
+      isPanning = true;
+      startX = e.clientX - panX;
+      startY = e.clientY - panY;
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!isPanning) return;
+      panX = e.clientX - startX;
+      panY = e.clientY - startY;
+      updateTransform();
+    });
+
+    window.addEventListener('mouseup', () => {
+      isPanning = false;
+    });
+
+    // Zoom on wheel
+    svgContainer.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const zoomFactor = 1.1;
+      const mouseX = e.offsetX;
+      const mouseY = e.offsetY;
+
+      if (e.deltaY < 0) {
+        // Zoom in
+        if (zoomLevel < 3.0) {
+          zoomLevel *= zoomFactor;
+          panX = mouseX - (mouseX - panX) * zoomFactor;
+          panY = mouseY - (mouseY - panY) * zoomFactor;
+        }
+      } else {
+        // Zoom out
+        if (zoomLevel > 0.35) {
+          zoomLevel /= zoomFactor;
+          panX = mouseX - (mouseX - panX) / zoomFactor;
+          panY = mouseY - (mouseY - panY) / zoomFactor;
+        }
+      }
+      updateTransform();
+    });
+
+    function zoomIn() {
+      if (zoomLevel < 3.0) {
+        zoomLevel *= 1.2;
+        updateTransform();
+      }
+    }
+
+    function zoomOut() {
+      if (zoomLevel > 0.35) {
+        zoomLevel /= 1.2;
+        updateTransform();
+      }
+    }
+
+    function resetZoom() {
+      zoomLevel = 1.0;
+      panX = 0;
+      panY = 0;
+      updateTransform();
+    }
+
+    function fitView() {
+      const containerRect = svgContainer.getBoundingClientRect();
+      const svgWidth = 1560;
+      const svgHeight = 1300;
+      const scaleX = containerRect.width / svgWidth;
+      const scaleY = containerRect.height / svgHeight;
+      zoomLevel = Math.min(scaleX, scaleY) * 0.95;
+      panX = (containerRect.width - svgWidth * zoomLevel) / 2;
+      panY = (containerRect.height - svgHeight * zoomLevel) / 2;
+      updateTransform();
+    }
+
+    // 3. INTERACTIVE HIGHLIGHTING ON HOVER & SELECTION
+    function getArchiSymbolId(type) {
+      if (type === 'BusinessActor') return '#archi-icon-actor';
+      if (type === 'BusinessService') return '#archi-icon-service';
+      if (type === 'BusinessProcess') return '#archi-icon-process';
+      if (type === 'BusinessObject') return '#archi-icon-object';
+      return '#archi-icon-grouping';
+    }
+
+    function highlightNode(nodeId) {
+      try {
+        if (selectedNodeId && selectedNodeId !== nodeId) return;
+
+        const connectedEdgeIds = new Set();
+        const connectedNodeIds = new Set([nodeId]);
+
+        MODEL_DATA.relationships.forEach(rel => {
+          if (rel.source === nodeId || rel.target === nodeId) {
+            connectedEdgeIds.add(rel.id);
+            connectedNodeIds.add(rel.source);
+            connectedNodeIds.add(rel.target);
+          }
+        });
+
+        // Dim non-connected nodes
+        document.querySelectorAll('.arch-node').forEach(el => {
+          const id = el.id.replace('node-', '');
+          if (connectedNodeIds.has(id)) {
+            el.classList.remove('dimmed');
+          } else {
+            el.classList.add('dimmed');
+          }
+        });
+
+        // Highlight connected edges
+        document.querySelectorAll('.arch-edge').forEach(el => {
+          const id = el.id.replace('edge-', '');
+          if (connectedEdgeIds.has(id)) {
+            el.classList.add('edge-highlight');
+            el.classList.remove('dimmed');
+          } else {
+            el.classList.remove('edge-highlight');
+            el.classList.add('dimmed');
+          }
+        });
+
+        // Highlight connected edge labels
+        document.querySelectorAll('.edge-label-group').forEach(el => {
+          const edgeId = el.dataset.edge;
+          if (connectedEdgeIds.has(edgeId)) {
+            el.classList.add('edge-label-highlight');
+            el.classList.remove('dimmed');
+          } else {
+            el.classList.remove('edge-label-highlight');
+            el.classList.add('dimmed');
+          }
+        });
+      } catch (err) {
+        console.error('Error highlighting node:', err);
+      }
+    }
+
+    function clearHighlight() {
+      try {
+        if (selectedNodeId) return;
+        document.querySelectorAll('.arch-node, .arch-edge, .edge-label-group').forEach(el => {
+          el.classList.remove('dimmed', 'edge-highlight', 'edge-label-highlight');
+        });
+      } catch (err) {
+        console.error('Error clearing highlight:', err);
+      }
+    }
+
+    function selectNode(nodeId) {
+      try {
+        selectedNodeId = nodeId;
+
+        // Update node styles
+        document.querySelectorAll('.arch-node').forEach(n => n.classList.remove('active-node'));
+        const activeEl = document.getElementById(`node-${nodeId}`);
+        if (activeEl) activeEl.classList.add('active-node');
+
+        highlightNode(nodeId);
+        openInspector(nodeId);
+      } catch (err) {
+        console.error('Error selecting node:', err);
+      }
+    }
+
+    function highlightRelation(relId) {
+      try {
+        const rel = MODEL_DATA.relationships.find(r => r.id === relId);
+        if (!rel) return;
+
+        const connectedNodeIds = new Set([rel.source, rel.target]);
+
+        document.querySelectorAll('.arch-node').forEach(el => {
+          const id = el.id.replace('node-', '');
+          el.classList.toggle('dimmed', !connectedNodeIds.has(id));
+        });
+
+        document.querySelectorAll('.arch-edge').forEach(el => {
+          const id = el.id.replace('edge-', '');
+          if (id === relId) {
+            el.classList.add('edge-highlight');
+            el.classList.remove('dimmed');
+          } else {
+            el.classList.remove('edge-highlight');
+            el.classList.add('dimmed');
+          }
+        });
+
+        document.querySelectorAll('.edge-label-group').forEach(el => {
+          const edgeId = el.dataset.edge;
+          if (edgeId === relId) {
+            el.classList.add('edge-label-highlight');
+            el.classList.remove('dimmed');
+          } else {
+            el.classList.remove('edge-label-highlight');
+            el.classList.add('dimmed');
+          }
+        });
+      } catch (err) {
+        console.error('Error highlighting relation:', err);
+      }
+    }
+
+    function selectRelation(relId) {
+      try {
+        const rel = MODEL_DATA.relationships.find(r => r.id === relId);
+        if (!rel) return;
+
+        selectedNodeId = relId;
+        document.querySelectorAll('.arch-node').forEach(n => n.classList.remove('active-node'));
+        highlightRelation(relId);
+
+        const drawer = document.getElementById('inspectorDrawer');
+        const content = document.getElementById('inspectorContent');
+        const sourceEl = MODEL_DATA.elements[rel.source];
+        const targetEl = MODEL_DATA.elements[rel.target];
+
+        content.innerHTML = `
+          <div class="space-y-4">
+            <div class="p-3.5 rounded-xl bg-blue-500/10 border border-blue-500/20">
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-blue-500/20 text-blue-700 dark:text-blue-300">
+                  ${rel.type}
+                </span>
+                <span class="text-[10px] text-slate-400 font-mono">Relationship</span>
+              </div>
+              <h2 class="text-sm font-bold text-slate-900 dark:text-white mt-2">${rel.label || rel.name}</h2>
+              <div class="text-xs text-blue-600 dark:text-blue-400 font-medium">Quan hệ liên kết ArchiMate 3.x</div>
+            </div>
+
+            <div class="space-y-2.5">
+              <div>
+                <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Phần tử Nguồn (Source)</h4>
+                <div onclick="selectNode('${rel.source}')" class="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700 cursor-pointer border border-slate-200 dark:border-slate-700 flex items-center justify-between transition">
+                  <div>
+                    <div class="text-xs font-bold text-slate-900 dark:text-white">${sourceEl?.name || rel.source}</div>
+                    <div class="text-[10px] text-slate-500">${sourceEl?.type || ''}</div>
+                  </div>
+                  <svg width="20" height="16"><use href="${getArchiSymbolId(sourceEl?.type)}" width="20" height="16"/></svg>
+                </div>
+              </div>
+
+              <div>
+                <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Phần tử Đích (Target)</h4>
+                <div onclick="selectNode('${rel.target}')" class="p-2.5 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700 cursor-pointer border border-slate-200 dark:border-slate-700 flex items-center justify-between transition">
+                  <div>
+                    <div class="text-xs font-bold text-slate-900 dark:text-white">${targetEl?.name || rel.target}</div>
+                    <div class="text-[10px] text-slate-500">${targetEl?.type || ''}</div>
+                  </div>
+                  <svg width="20" height="16"><use href="${getArchiSymbolId(targetEl?.type)}" width="20" height="16"/></svg>
+                </div>
+              </div>
+            </div>
+
+            <div class="border-t border-slate-200 dark:border-slate-800 pt-3">
+              <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Mã định danh XML (XML Metadata)</h4>
+              <div class="p-2 rounded bg-slate-900 text-slate-300 font-mono text-[11px] break-all select-all flex items-center justify-between">
+                <span>${rel.id}</span>
+                <button onclick="copyToClipboard('${rel.id}')" title="Sao chép ID" class="ml-2 text-slate-400 hover:text-white">
+                  <i class="fa-regular fa-copy"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        `;
+
+        drawer.classList.remove('translate-x-full');
+      } catch (err) {
+        console.error('Error selecting relation:', err);
+      }
+    }
+
+    // Bind handlers explicitly to window
+    window.highlightNode = highlightNode;
+    window.clearHighlight = clearHighlight;
+    window.selectNode = selectNode;
+    window.highlightRelation = highlightRelation;
+    window.selectRelation = selectRelation;
+
+    // 4. INSPECTOR DRAWER CONTENT
+    function openInspector(nodeId) {
+      const node = MODEL_DATA.elements[nodeId];
+      if (!node) return;
+
+      const incomingRels = MODEL_DATA.relationships.filter(r => r.target === nodeId);
+      const outgoingRels = MODEL_DATA.relationships.filter(r => r.source === nodeId);
+
+      const drawer = document.getElementById('inspectorDrawer');
+      const content = document.getElementById('inspectorContent');
+
+      content.innerHTML = `
+        <div class="space-y-4">
+          <!-- Header Card with Official Archi Palette Symbol -->
+          <div class="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md bg-amber-500/20 text-amber-700 dark:text-amber-300">
+                ${node.type}
+              </span>
+              <div class="flex items-center gap-2">
+                <span class="text-[10px] text-slate-400 font-mono">${node.layer}</span>
+                <svg width="22" height="18" class="shrink-0"><use href="${getArchiSymbolId(node.type)}" width="22" height="18"/></svg>
+              </div>
+            </div>
+            <h2 class="text-sm font-bold text-slate-900 dark:text-white mt-2">${node.name}</h2>
+            <div class="text-xs text-amber-600 dark:text-amber-400 font-medium">${node.vietnameseName}</div>
+          </div>
+
+          <!-- Description -->
+          <div>
+            <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Mô tả nghiệp vụ</h4>
+            <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-lg border border-slate-100 dark:border-slate-800">
+              ${node.desc}
+            </p>
+          </div>
+
+          <!-- Relationships Summary -->
+          <div class="space-y-3">
+            <div>
+              <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center justify-between">
+                <span>Quan hệ Xuất phát (Outgoing)</span>
+                <span class="text-[10px] px-1.5 rounded bg-slate-100 dark:bg-slate-800">${outgoingRels.length}</span>
+              </h4>
+              ${outgoingRels.length === 0 ? '<div class="text-[11px] text-slate-400 italic">Không có</div>' : `
+                <div class="space-y-1.5">
+                  ${outgoingRels.map(r => `
+                    <div onclick="selectNode('${r.target}')" class="p-2 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700 cursor-pointer border border-slate-200/60 dark:border-slate-700 transition">
+                      <div class="flex items-center justify-between text-[11px]">
+                        <span class="font-bold text-amber-600 dark:text-amber-400">${r.type.replace('Relationship', '')}${r.label ? ` • ${r.label}` : ''}</span>
+                        <span class="text-[10px] text-slate-400">Tới &rarr;</span>
+                      </div>
+                      <div class="text-xs font-semibold text-slate-800 dark:text-slate-200 mt-0.5">${MODEL_DATA.elements[r.target]?.name || r.target}</div>
+                    </div>
+                  `).join('')}
+                </div>
+              `}
+            </div>
+
+            <div>
+              <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1 flex items-center justify-between">
+                <span>Quan hệ Đến (Incoming)</span>
+                <span class="text-[10px] px-1.5 rounded bg-slate-100 dark:bg-slate-800">${incomingRels.length}</span>
+              </h4>
+              ${incomingRels.length === 0 ? '<div class="text-[11px] text-slate-400 italic">Không có</div>' : `
+                <div class="space-y-1.5">
+                  ${incomingRels.map(r => `
+                    <div onclick="selectNode('${r.source}')" class="p-2 rounded-lg bg-slate-50 dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-slate-700 cursor-pointer border border-slate-200/60 dark:border-slate-700 transition">
+                      <div class="flex items-center justify-between text-[11px]">
+                        <span class="font-bold text-blue-600 dark:text-blue-400">${r.type.replace('Relationship', '')}${r.label ? ` • ${r.label}` : ''}</span>
+                        <span class="text-[10px] text-slate-400">&larr; Từ</span>
+                      </div>
+                      <div class="text-xs font-semibold text-slate-800 dark:text-slate-200 mt-0.5">${MODEL_DATA.elements[r.source]?.name || r.source}</div>
+                    </div>
+                  `).join('')}
+                </div>
+              `}
+            </div>
+          </div>
+
+          <!-- XML Identifier Metadata Box -->
+          <div class="border-t border-slate-200 dark:border-slate-800 pt-3">
+            <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Mã định danh XML (XML Metadata)</h4>
+            <div class="p-2 rounded bg-slate-900 text-slate-300 font-mono text-[11px] break-all select-all flex items-center justify-between">
+              <span>${node.id}</span>
+              <button onclick="copyToClipboard('${node.id}')" title="Sao chép ID" class="ml-2 text-slate-400 hover:text-white">
+                <i class="fa-regular fa-copy"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+
+      drawer.classList.remove('translate-x-full');
+    }
+
+    function closeInspector() {
+      selectedNodeId = null;
+      document.getElementById('inspectorDrawer').classList.add('translate-x-full');
+      document.querySelectorAll('.arch-node').forEach(n => n.classList.remove('active-node'));
+      clearHighlight();
+    }
+
+    function copyToClipboard(text) {
+      const el = document.createElement('textarea');
+      el.value = text;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+      showNotification('Đã sao chép ID vào clipboard!');
+    }
+
+    function showNotification(msg) {
+      const toast = document.createElement('div');
+      toast.className = 'fixed bottom-6 right-6 bg-slate-900 text-white px-4 py-2 rounded-xl text-xs shadow-2xl border border-slate-700 z-50 flex items-center gap-2';
+      toast.innerHTML = `<i class="fa-solid fa-check text-emerald-400"></i> ${msg}`;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 2500);
+    }
+
+    // 5. SEARCH SYSTEM
+    function handleSearch(term) {
+      const resultsContainer = document.getElementById('searchResults');
+      if (!term.trim()) {
+        resultsContainer.classList.add('hidden');
+        return;
+      }
+
+      const q = term.toLowerCase();
+      const matches = Object.values(MODEL_DATA.elements).filter(el => 
+        el.name.toLowerCase().includes(q) ||
+        el.vietnameseName.toLowerCase().includes(q) ||
+        el.id.toLowerCase().includes(q) ||
+        el.type.toLowerCase().includes(q)
+      );
+
+      if (matches.length === 0) {
+        resultsContainer.innerHTML = '<div class="p-2 text-xs text-slate-400 italic">Không tìm thấy phần tử nào</div>';
+      } else {
+        resultsContainer.innerHTML = matches.map(m => `
+          <div onclick="selectSearchResult('${m.id}')" class="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer flex items-center justify-between text-xs">
+            <div>
+              <div class="font-bold text-slate-900 dark:text-white">${m.name}</div>
+              <div class="text-[10px] text-slate-400">${m.vietnameseName}</div>
+            </div>
+            <span class="text-[9px] px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 font-mono text-slate-600 dark:text-slate-300">
+              ${m.type.replace('Business', '')}
+            </span>
+          </div>
+        `).join('');
+      }
+      resultsContainer.classList.remove('hidden');
+    }
+
+    function selectSearchResult(nodeId) {
+      document.getElementById('searchResults').classList.add('hidden');
+      document.getElementById('searchInput').value = '';
+      switchView('diagram');
+      selectNode(nodeId);
+
+      // Pan & focus to the node
+      const nodeEl = document.getElementById(`node-${nodeId}`);
+      if (nodeEl) {
+        const bbox = nodeEl.getBBox();
+        const svgContainer = document.getElementById('svgContainer');
+        const containerRect = svgContainer.getBoundingClientRect();
+        
+        zoomLevel = 1.25;
+        panX = (containerRect.width / 2) - ((bbox.x + bbox.width / 2) * zoomLevel);
+        panY = (containerRect.height / 2) - ((bbox.y + bbox.height / 2) * zoomLevel);
+        updateTransform();
+      }
+    }
+
+    // 6. LAYER & RELATIONSHIP FILTERING
+    function toggleLayerFilter(layerKey, isVisible) {
+      const groupEl = document.getElementById(`group-${layerKey}`);
+      if (groupEl) {
+        groupEl.style.display = isVisible ? '' : 'none';
+      }
+
+      // Hide/Show related edges
+      document.querySelectorAll('.arch-edge').forEach(edge => {
+        const sourceId = edge.dataset.source;
+        const targetId = edge.dataset.target;
+        const sourceEl = document.getElementById(`node-${sourceId}`);
+        const targetEl = document.getElementById(`node-${targetId}`);
+
+        if (sourceEl && targetEl) {
+          const sourceVisible = sourceEl.closest('.layer-group').style.display !== 'none';
+          const targetVisible = targetEl.closest('.layer-group').style.display !== 'none';
+          edge.style.display = (sourceVisible && targetVisible) ? '' : 'none';
+        }
+      });
+    }
+
+    function toggleRelationFilter(relationType, isVisible) {
+      document.querySelectorAll(`.arch-edge[data-type="${relationType}"]`).forEach(edge => {
+        edge.style.display = isVisible ? '' : 'none';
+      });
+      document.querySelectorAll(`.edge-label-group[data-type="${relationType}"]`).forEach(lbl => {
+        lbl.style.display = isVisible ? '' : 'none';
+      });
+      if (relationType === 'AccessRelationship') {
+        const accessGroup = document.getElementById('accessLabelsGroup');
+        if (accessGroup) accessGroup.style.display = (isVisible && showAccessLabels) ? '' : 'none';
+      }
+    }
+
+    function toggleAccessLabels() {
+      showAccessLabels = !showAccessLabels;
+      const accessGroup = document.getElementById('accessLabelsGroup');
+      const btnText = document.getElementById('accessLabelText');
+      if (accessGroup) {
+        accessGroup.style.display = showAccessLabels ? '' : 'none';
+      }
+      if (btnText) {
+        btnText.innerText = showAccessLabels ? 'Nhãn Access' : 'Hiện Access';
+      }
+    }
+
+    function resetFilters() {
+      document.querySelectorAll('#filterSidebar input[type="checkbox"]').forEach(cb => cb.checked = true);
+      document.querySelectorAll('.layer-group, .arch-edge, .edge-label-group').forEach(el => el.style.display = '');
+      showAccessLabels = true;
+      const accessGroup = document.getElementById('accessLabelsGroup');
+      if (accessGroup) accessGroup.style.display = '';
+    }
+
+    // 7. COLOR ENCODING TOGGLE (Standard Monochrome vs Color-Coded)
+    function toggleColorEncoding() {
+      isColorCoded = !isColorCoded;
+      const btnLabel = document.getElementById('colorModeLabel');
+      
+      if (isColorCoded) {
+        btnLabel.innerText = "Màu phân loại";
+        document.querySelectorAll('.arch-edge').forEach(edge => {
+          const type = edge.dataset.type;
+          edge.classList.remove('stroke-slate-500', 'dark:stroke-slate-400');
+          if (type === 'TriggeringRelationship') edge.classList.add('stroke-red-600', 'dark:stroke-red-400');
+          if (type === 'RealizationRelationship') edge.classList.add('stroke-blue-600', 'dark:stroke-blue-400');
+          if (type === 'ServingRelationship') edge.classList.add('stroke-emerald-600', 'dark:stroke-emerald-400');
+          if (type === 'AssignmentRelationship') edge.classList.add('stroke-purple-600', 'dark:stroke-purple-400');
+          if (type === 'AccessRelationship') edge.classList.add('stroke-amber-600', 'dark:stroke-amber-400');
+          if (type === 'AggregationRelationship') edge.classList.add('stroke-slate-600', 'dark:stroke-slate-400');
+        });
+      } else {
+        btnLabel.innerText = "Màu chuẩn ArchiMate";
+        document.querySelectorAll('.arch-edge').forEach(edge => {
+          edge.className.baseVal = "arch-edge stroke-slate-600 dark:stroke-slate-400";
+        });
+      }
+    }
+
+    // 8. TABS & VIEW SWITCHING
+    function switchView(viewName) {
+      ['viewDiagram', 'viewMatrix', 'viewDictionary'].forEach(v => {
+        document.getElementById(v).classList.add('hidden');
+      });
+      ['tabDiagramBtn', 'tabMatrixBtn', 'tabDictionaryBtn'].forEach(t => {
+        document.getElementById(t).className = "px-3.5 py-1.5 text-xs font-medium rounded-lg text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center gap-2 transition";
+      });
+
+      if (viewName === 'diagram') {
+        document.getElementById('viewDiagram').classList.remove('hidden');
+        document.getElementById('tabDiagramBtn').className = "px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm flex items-center gap-2 transition";
+      } else if (viewName === 'matrix') {
+        document.getElementById('viewMatrix').classList.remove('hidden');
+        document.getElementById('tabMatrixBtn').className = "px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm flex items-center gap-2 transition";
+      } else if (viewName === 'dictionary') {
+        document.getElementById('viewDictionary').classList.remove('hidden');
+        document.getElementById('tabDictionaryBtn').className = "px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm flex items-center gap-2 transition";
+        renderDictionaryTable();
+      }
+    }
+
+    function renderDictionaryTable() {
+      const tbody = document.getElementById('dictionaryTableBody');
+      tbody.innerHTML = Object.values(MODEL_DATA.elements).map(el => `
+        <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition">
+          <td class="p-3">
+            <div class="font-bold text-slate-900 dark:text-white">${el.name}</div>
+            <div class="text-[11px] text-slate-500">${el.vietnameseName}</div>
+          </td>
+          <td class="p-3">
+            <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300">
+              ${el.type}
+            </span>
+          </td>
+          <td class="p-3 text-slate-600 dark:text-slate-300">${el.layer}</td>
+          <td class="p-3 font-mono text-[11px] text-slate-400">${el.id}</td>
+          <td class="p-3 text-right">
+            <button onclick="selectSearchResult('${el.id}')" class="px-2.5 py-1 text-xs rounded bg-slate-100 hover:bg-amber-100 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 transition">
+              <i class="fa-solid fa-crosshairs text-amber-500"></i> Định vị
+            </button>
+          </td>
+        </tr>
+      `).join('');
+
+      const relBody = document.getElementById('relationsTableBody');
+      if (relBody) {
+        relBody.innerHTML = MODEL_DATA.relationships.map(r => `
+          <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition">
+            <td class="p-3 font-semibold text-slate-800 dark:text-slate-200">${r.type.replace('Relationship', '')}</td>
+            <td class="p-3 text-slate-700 dark:text-slate-300">${MODEL_DATA.elements[r.source]?.name || r.source}</td>
+            <td class="p-3 text-slate-700 dark:text-slate-300">${MODEL_DATA.elements[r.target]?.name || r.target}</td>
+            <td class="p-3">
+              ${r.label ? `<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300">${r.label}</span>` : `<span class="text-slate-400">${r.name}</span>`}
+            </td>
+            <td class="p-3 font-mono text-[11px] text-slate-400">${r.id}</td>
+          </tr>
+        `).join('');
+      }
+    }
+
+    // 9. EXPORT DIAGRAM AS SVG / PNG
+    function exportDiagram(format) {
+      const svg = document.getElementById('archimateSvg');
+      const serializer = new XMLSerializer();
+      let source = serializer.serializeToString(svg);
+
+      // Add namespaces
+      if (!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)) {
+        source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+      }
+
+      if (format === 'svg') {
+        const blob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'archimate_student_mdm_360_v2.svg';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showNotification('Đã xuất thành công tệp vector SVG!');
+      } else if (format === 'png') {
+        const canvas = document.createElement('canvas');
+        canvas.width = 1560 * 2; // high resolution scale 2x
+        canvas.height = 1300 * 2;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = document.documentElement.classList.contains('dark') ? '#020617' : '#FFFFFF';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        const img = new Image();
+        const svgBlob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(svgBlob);
+
+        img.onload = function() {
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+          URL.revokeObjectURL(url);
+          const pngUrl = canvas.toDataURL('image/png');
+          const link = document.createElement('a');
+          link.href = pngUrl;
+          link.download = 'archimate_student_mdm_360.png';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          showNotification('Đã xuất thành công ảnh PNG độ nét cao!');
+        };
+        img.src = url;
+      }
+    }
+
+    // 10. UI THEME & SIDEBAR TOGGLES
+    function toggleDarkMode() {
+      const html = document.documentElement;
+      const isDark = html.classList.toggle('dark');
+      document.getElementById('themeIcon').className = isDark ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+      try {
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      } catch(e) {}
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById('filterSidebar');
+      sidebar.classList.toggle('-ml-72');
+    }
+
+    // Auto fit diagram on initial launch
+    window.addEventListener('load', () => {
+      // Check system theme
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.documentElement.classList.add('dark');
+        document.getElementById('themeIcon').className = 'fa-solid fa-sun';
+      }
+      setTimeout(fitView, 100);
+    });
+
+    window.addEventListener('resize', () => {
+      // Keep responsive fit
+      fitView();
+    });
+  </script>
+</body>
+</html>

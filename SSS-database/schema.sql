@@ -21,3 +21,9 @@ BEGIN
     PRINT 'Bang students da ton tai, bo qua buoc tao bang.';
 END
 GO
+
+INSERT INTO students (student_id, full_name, major, class_name, department, cpa, national_id)
+VALUES 
+    ('20221234', N'Nguyễn Văn A', 'Computer Science', 'IT1-K67', 'School of ICT', 3.8, '001204123456'),
+    ('20225678', N'Trần Văn B', 'Computer Engineering', 'IT2-K67', 'School of ICT', 3.6, '002204654321');
+GO
