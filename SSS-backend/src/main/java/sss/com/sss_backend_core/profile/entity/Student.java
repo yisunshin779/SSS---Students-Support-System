@@ -1,5 +1,7 @@
 package sss.com.sss_backend_core.profile.entity;
 
+import java.time.LocalDateTime;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import jakarta.persistence.Column;
@@ -32,6 +34,12 @@ public class Student {
 
     @Column(name = "department")
     private String department;
+
+    @Column(name = "admission_year")
+    private Integer admissionYear;
+
+    @Column(name = "last_synced_at")
+    private LocalDateTime lastSyncedAt;
 
     @JsonIgnore
     @Column(name = "cpa")
