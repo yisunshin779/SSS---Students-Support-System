@@ -1,4 +1,4 @@
-package sss.com.sss_backend_core.profile.service;
+package sss.com.sss_backend_core.profile.sync;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

@@ -1,4 +1,4 @@
-package sss.com.sss_backend_core.profile.service;
+package sss.com.sss_backend_core.profile.sync;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
