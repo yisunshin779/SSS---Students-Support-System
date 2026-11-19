@@ -19,4 +19,7 @@ public interface StudentRepository extends JpaRepository<Student, String> {
     
     // Lọc danh sách sinh viên theo Lớp hành chính
     List<Student> findByClassName(String className);
+
+    // Lọc theo danh sách sinh viên theo CCCD
+    Optional<Student> findByNationalId(String nationalId);
 }

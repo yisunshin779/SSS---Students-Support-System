@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import sss.com.sss_backend_core.profile.entity.Student;
+import sss.com.sss_backend_core.profile.identity.IdentityResolutionService;
 import sss.com.sss_backend_core.profile.repository.StudentRepository;
 import sss.com.sss_backend_core.profile.service.sis.SisClient;
 import sss.com.sss_backend_core.profile.service.sis.SisStudentDto;
@@ -21,10 +22,14 @@ public class StudentSyncService {
 
     private final SisClient sisClient;
     private final StudentRepository studentRepository;
+    private final IdentityResolutionService identityService;
 
-    public StudentSyncService(SisClient sisClient, StudentRepository studentRepository) {
-        this.sisClient = sisClient;
-        this.studentRepository = studentRepository;
+    public StudentSyncService(SisClient sisClient,
+                          StudentRepository studentRepository,
+                          IdentityResolutionService identityService) {
+    this.sisClient = sisClient;
+    this.studentRepository = studentRepository;
+    this.identityService = identityService;
     }
 
     private int currentAcademicYearStart() {
@@ -68,5 +73,6 @@ public class StudentSyncService {
         s.setAdmissionYear(dto.admissionYear());
         s.setLastSyncedAt(LocalDateTime.now());
         studentRepository.save(s);
+        identityService.registerSis(dto.studentId());
     }
 }
