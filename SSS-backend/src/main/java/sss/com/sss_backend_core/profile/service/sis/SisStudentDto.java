@@ -3,7 +3,7 @@ package sss.com.sss_backend_core.profile.service.sis;
 import java.util.List;
 
 public record SisStudentDto(
-        String studentId,      // MSSV
+        String studentId,      
         String fullName,
         String major,
         String className,
