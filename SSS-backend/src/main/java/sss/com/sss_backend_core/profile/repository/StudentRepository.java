@@ -22,4 +22,6 @@ public interface StudentRepository extends JpaRepository<Student, String> {
 
     // Lọc theo danh sách sinh viên theo CCCD
     Optional<Student> findByNationalId(String nationalId);
+
+    List<Student> findByEmailIgnoreCase(String email);
 }

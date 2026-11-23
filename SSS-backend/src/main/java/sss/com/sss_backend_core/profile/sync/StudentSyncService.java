@@ -72,6 +72,7 @@ public class StudentSyncService {
         s.setNationalId(dto.nationalId());
         s.setAdmissionYear(dto.admissionYear());
         s.setLastSyncedAt(LocalDateTime.now());
+        s.setEmail(dto.email());
         studentRepository.save(s);
         identityService.registerSis(dto.studentId());
     }

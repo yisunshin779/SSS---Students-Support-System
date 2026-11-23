@@ -54,7 +54,7 @@ public class MockSisController {
         return Map.of("items", filtered.subList(start, end), "page", page, "totalPages", totalPages);
     }
 
-    private int academicYearStart() {
+    public int academicYearStart() {
         LocalDate t = LocalDate.now();
         return t.getMonthValue() >= 9 ? t.getYear() : t.getYear() - 1;
     }
@@ -68,7 +68,7 @@ public class MockSisController {
     }
 
     /** 6 khóa x 5 sinh viên = 30 bản ghi, kèm 5 ca lỗi cố ý. */
-    private List<SisStudentDto> buildAll() {
+    public List<SisStudentDto> buildAll() {
         int base = academicYearStart();
         List<SisStudentDto> list = new ArrayList<>();
         int n = 0;
@@ -78,6 +78,7 @@ public class MockSisController {
                 String name = nameOf(n);
                 Double cpa = Math.round((2.0 + seq * 0.45) * 100) / 100.0;
                 String nid = nationalIdOf(year, seq);
+                String email = String.format("sv%d%06d@sis.hust.edu.vn", year, seq);
 
                 if (year == base && seq == 5)     cpa = null;                  // CPA null (hợp lệ)
                 if (year == base - 1 && seq == 5) nid = nationalIdOf(year, 1); // trùng CCCD -> lỗi lưu
@@ -86,7 +87,7 @@ public class MockSisController {
                 if (year == base - 4 && seq == 4) name = nameOf(n - 1);        // trùng tên (dùng ở Phần 2)
 
                 list.add(new SisStudentDto(id, name, MAJORS[n % 3], "CNTT-" + (year % 100),
-                        DEPTS[n % 2], cpa, nid, year));
+                    DEPTS[n % 2], cpa, nid, year, email));
             }
         }
         return list;

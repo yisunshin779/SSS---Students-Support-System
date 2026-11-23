@@ -10,7 +10,8 @@ public record SisStudentDto(
         String department,
         Double cpa,
         String nationalId,
-        Integer admissionYear
+        Integer admissionYear,
+        String email
 ) {}
 
 record SisPage(List<SisStudentDto> items, int page, int totalPages) {
