@@ -11,7 +11,8 @@ public record SisStudentDto(
         Double cpa,
         String nationalId,
         Integer admissionYear,
-        String email
+        String email,
+        String getStatus
 ) {}
 
 record SisPage(List<SisStudentDto> items, int page, int totalPages) {

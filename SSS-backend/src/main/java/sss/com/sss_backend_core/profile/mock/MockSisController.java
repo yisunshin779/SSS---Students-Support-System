@@ -87,7 +87,7 @@ public class MockSisController {
                 if (year == base - 4 && seq == 4) name = nameOf(n - 1);        // trùng tên (dùng ở Phần 2)
 
                 list.add(new SisStudentDto(id, name, MAJORS[n % 3], "CNTT-" + (year % 100),
-                    DEPTS[n % 2], cpa, nid, year, email));
+                    DEPTS[n % 2], cpa, nid, year, email, "ACTIVE"));
             }
         }
         return list;
