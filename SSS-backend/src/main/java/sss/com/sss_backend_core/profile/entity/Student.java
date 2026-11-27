@@ -46,6 +46,9 @@ public class Student {
     @Column(name = "email")
     private String email;
 
+    @Column(name = "status", length = 30)
+    private String status; // VD: ACTIVE, WARNING_1, SUSPENDED, GRADUATED
+
     // JPA bắt buộc phải có constructor không tham số
     public Student() {
     }
@@ -53,7 +56,7 @@ public class Student {
     // Constructor đầy đủ (thứ tự trùng thứ tự các trường ở trên)
     public Student(String studentId, String name, String major, String className,
                    String department, Integer admissionYear, LocalDateTime lastSyncedAt,
-                   Double cpa, String nationalId, String email) {
+                   Double cpa, String nationalId, String email, String status) {
         this.studentId = studentId;
         this.name = name;
         this.major = major;
@@ -64,6 +67,7 @@ public class Student {
         this.cpa = cpa;
         this.nationalId = nationalId;
         this.email = email;
+        this.status = status;
     }
 
     public String getStudentId() {
@@ -144,5 +148,12 @@ public class Student {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getStatus() { 
+        return status; 
+    }
+    public void setStatus(String status) { 
+        this.status = status; 
     }
 }
