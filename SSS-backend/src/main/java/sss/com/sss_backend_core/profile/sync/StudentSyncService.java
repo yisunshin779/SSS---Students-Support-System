@@ -75,5 +75,6 @@ public class StudentSyncService {
         s.setEmail(dto.email());
         studentRepository.save(s);
         identityService.registerSis(dto.studentId());
+        s.setStatus(dto.getStatus() != null ? dto.getStatus() : "ACTIVE");
     }
 }
